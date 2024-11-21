@@ -2,8 +2,7 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import WindiCSS from "vite-plugin-windicss";
 import { minify } from "html-minifier";
-import viteCompression from "vite-plugin-compression";
-import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { viteStaticCopy } from "vite-plugin-static-copy";
 
 const minifyHtml = () => {
   return {
