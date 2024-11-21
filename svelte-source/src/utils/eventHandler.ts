@@ -9,13 +9,8 @@ import LayoutStore from "../stores/layoutStore";
 import VehicleHudStore from "../stores/vehicleHudStore";
 import ColorEffectStore from "../stores/colorEffectStore";
 import ProfileStore from "../stores/profileStore";
-import { initI18n } from './i18n';
-import {
-  colorStoreLocalStorageName,
-  playerStoreLocalStorageName,
-  layoutStoreLocalStorageName,
-  profileLocalStorageName,
-} from "../types/types";
+import { initI18n } from "./i18n";
+import { colorStoreLocalStorageName, playerStoreLocalStorageName, layoutStoreLocalStorageName, profileLocalStorageName } from "../types/types";
 
 interface nuiMessage {
   data: {
@@ -57,9 +52,7 @@ export function EventHandler() {
             ExternalStatusStore.receiveBuffStatusMessage(event.data as any);
             break;
           case "enhancement":
-            ExternalStatusStore.receiveEnhancementStatusMessage(
-              event.data as any
-            );
+            ExternalStatusStore.receiveEnhancementStatusMessage(event.data as any);
             break;
         }
         break;
@@ -128,7 +121,7 @@ export async function fetchNui(eventName: string, data: unknown = {}) {
     body: JSON.stringify(data),
   };
 
-  const resourceName = "ps-hud";
+  const resourceName = "x-hud";
 
   try {
     const resp = await fetch(`https://${resourceName}/${eventName}`, options);
@@ -139,9 +132,7 @@ export async function fetchNui(eventName: string, data: unknown = {}) {
 function serializeIconData(iconData) {
   let result = {};
   for (const [key, value] of Object.entries(iconData)) {
-    let newObject = (({ icon, isShowing, name, progressValue, ...o }) => o)(
-      value as any
-    );
+    let newObject = (({ icon, isShowing, name, progressValue, ...o }) => o)(value as any);
     result[key] = newObject;
   }
   return result;
@@ -150,9 +141,7 @@ function serializeIconData(iconData) {
 function serializeColorData(colorData) {
   let result = {};
   for (const [key, value] of Object.entries(colorData)) {
-    let newObject = (({ currentEffect, editableColors, ...o }) => o)(
-      value as any
-    );
+    let newObject = (({ currentEffect, editableColors, ...o }) => o)(value as any);
     result[key] = newObject;
   }
   return result;
@@ -198,8 +187,5 @@ export async function saveUIDataToLocalStorage() {
 
   localStorage.setItem(layoutStoreLocalStorageName, JSON.stringify(layoutData));
 
-  localStorage.setItem(
-    profileLocalStorageName,
-    JSON.stringify({ profiles: profileData })
-  );
+  localStorage.setItem(profileLocalStorageName, JSON.stringify({ profiles: profileData }));
 }

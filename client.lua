@@ -1,4 +1,5 @@
 local QBCore = exports['qb-core']:GetCoreObject()
+local serverId = GetPlayerServerId(PlayerId())
 local PlayerData = QBCore.Functions.GetPlayerData()
 local config = Config
 local UIConfig = UIConfig
@@ -31,25 +32,25 @@ local CinematicHeight = 0.2
 local w = 0
 local radioTalking = false
 local Menu = {
-    isOutMapChecked = true, -- isOutMapChecked
-    isOutCompassChecked = true, -- isOutCompassChecked
-    isCompassFollowChecked = true, -- isCompassFollowChecked
-    isOpenMenuSoundsChecked = true, -- isOpenMenuSoundsChecked
-    isResetSoundsChecked = true, -- isResetSoundsChecked
-    isListSoundsChecked = true, -- isListSoundsChecked
-    isMapNotifChecked = true, -- isMapNotifChecked
-    isLowFuelChecked = true, -- isLowFuelChecked
-    isCinematicNotifChecked = true, -- isCinematicNotifChecked
-    isMapEnabledChecked = false, -- isMapEnabledChecked
-    isToggleMapBordersChecked = true, -- isToggleMapBordersChecked
-    isDynamicEngineChecked = true, -- isDynamicEngineChecked
-    isDynamicNitroChecked = true, -- isDynamicNitroChecked
-    isChangeCompassFPSChecked = true, -- isChangeCompassFPSChecked
-    isCompassShowChecked = true, -- isShowCompassChecked
-    isShowStreetsChecked = true, -- isShowStreetsChecked
-    isPointerShowChecked = true, -- isPointerShowChecked
-    isDegreesShowChecked = true, -- isDegreesShowChecked
-    isCineamticModeChecked = false, -- isCineamticModeChecked
+    isOutMapChecked = true,             -- isOutMapChecked
+    isOutCompassChecked = true,         -- isOutCompassChecked
+    isCompassFollowChecked = true,      -- isCompassFollowChecked
+    isOpenMenuSoundsChecked = true,     -- isOpenMenuSoundsChecked
+    isResetSoundsChecked = true,        -- isResetSoundsChecked
+    isListSoundsChecked = true,         -- isListSoundsChecked
+    isMapNotifChecked = true,           -- isMapNotifChecked
+    isLowFuelChecked = true,            -- isLowFuelChecked
+    isCinematicNotifChecked = true,     -- isCinematicNotifChecked
+    isMapEnabledChecked = false,        -- isMapEnabledChecked
+    isToggleMapBordersChecked = true,   -- isToggleMapBordersChecked
+    isDynamicEngineChecked = true,      -- isDynamicEngineChecked
+    isDynamicNitroChecked = true,       -- isDynamicNitroChecked
+    isChangeCompassFPSChecked = true,   -- isChangeCompassFPSChecked
+    isCompassShowChecked = true,        -- isShowCompassChecked
+    isShowStreetsChecked = true,        -- isShowStreetsChecked
+    isPointerShowChecked = true,        -- isPointerShowChecked
+    isDegreesShowChecked = true,        -- isDegreesShowChecked
+    isCineamticModeChecked = false,     -- isCineamticModeChecked
     isToggleMapShapeChecked = 'square', -- isToggleMapShapeChecked
 }
 
@@ -251,7 +252,9 @@ RegisterNetEvent("hud:client:resetStorage", function()
     if Menu.isResetSoundsChecked then
         TriggerServerEvent("InteractSound_SV:PlayOnSource", "airwrench", 0.1)
     end
-    QBCore.Functions.TriggerCallback('hud:server:getMenu', function(menu) loadSettings(menu); SetResourceKvp('hudSettings', json.encode(menu)) end)
+    QBCore.Functions.TriggerCallback('hud:server:getMenu', function(menu)
+        loadSettings(menu); SetResourceKvp('hudSettings', json.encode(menu))
+    end)
 end)
 
 -- Notifications
@@ -343,7 +346,7 @@ end)
 
 RegisterNUICallback('showFollowCompass', function(data, cb)
     cb({})
-	Wait(50)
+    Wait(50)
     if data.checked then
         Menu.isCompassFollowChecked = true
     else
@@ -408,12 +411,12 @@ end)
 RegisterNetEvent("hud:client:LoadMap", function()
     Wait(50)
     -- Credit to Dalrae for the solve.
-    local defaultAspectRatio = 1920/1080 -- Don't change this.
+    local defaultAspectRatio = 1920 / 1080 -- Don't change this.
     local resolutionX, resolutionY = GetActiveScreenResolution()
-    local aspectRatio = resolutionX/resolutionY
+    local aspectRatio = resolutionX / resolutionY
     local minimapOffset = 0
     if aspectRatio > defaultAspectRatio then
-        minimapOffset = ((defaultAspectRatio-aspectRatio)/3.6)-0.008
+        minimapOffset = ((defaultAspectRatio - aspectRatio) / 3.6) - 0.008
     end
     if Menu.isToggleMapShapeChecked == "square" then
         RequestStreamedTextureDict("squaremap", false)
@@ -528,7 +531,7 @@ end)
 -- Compass
 RegisterNUICallback('showCompassBase', function(data, cb)
     cb({})
-	Wait(50)
+    Wait(50)
     if data.checked then
         Menu.isCompassShowChecked = true
     else
@@ -539,7 +542,7 @@ end)
 
 RegisterNUICallback('showStreetsNames', function(data, cb)
     cb({})
-	Wait(50)
+    Wait(50)
     if data.checked then
         Menu.isShowStreetsChecked = true
     else
@@ -550,7 +553,7 @@ end)
 
 RegisterNUICallback('showPointerIndex', function(data, cb)
     cb({})
-	Wait(50)
+    Wait(50)
     if data.checked then
         Menu.isPointerShowChecked = true
     else
@@ -561,7 +564,7 @@ end)
 
 RegisterNUICallback('showDegreesNum', function(data, cb)
     cb({})
-	Wait(50)
+    Wait(50)
     if data.checked then
         Menu.isDegreesShowChecked = true
     else
@@ -572,7 +575,7 @@ end)
 
 RegisterNUICallback('changeCompassFPS', function(data, cb)
     cb({})
-	Wait(50)
+    Wait(50)
     if data.fps == "optimized" then
         Menu.isChangeCompassFPSChecked = true
     else
@@ -634,6 +637,18 @@ end)
 RegisterNetEvent('hud:client:UpdateNeeds', function(newHunger, newThirst) -- Triggered in qb-core
     hunger = newHunger
     thirst = newThirst
+end)
+
+AddStateBagChangeHandler('hunger', ('player:%s'):format(serverId), function(_, _, value)
+    hunger = value
+end)
+
+AddStateBagChangeHandler('thirst', ('player:%s'):format(serverId), function(_, _, value)
+    thirst = value
+end)
+
+AddStateBagChangeHandler('stress', ('player:%s'):format(serverId), function(_, _, value)
+    stress = value
 end)
 
 RegisterNetEvent('hud:client:UpdateStress', function(newStress) -- Add this event with adding stress elsewhere
@@ -819,7 +834,7 @@ local prevVehicleStats = {
     nil, --[7] showAltitude
     nil, --[8] showSeatbelt
     nil, --[9] showSquareBorder
-    nil --[10] showCircleBorder
+    nil  --[10] showCircleBorder
 }
 
 local function updateShowVehicleHud(show)
@@ -838,7 +853,10 @@ end
 local function updateVehicleHud(data)
     local shouldUpdate = false
     for k, v in pairs(data) do
-        if prevVehicleStats[k] ~= v then shouldUpdate = true break end
+        if prevVehicleStats[k] ~= v then
+            shouldUpdate = true
+            break
+        end
     end
     prevVehicleStats = data
     if shouldUpdate then
@@ -1078,7 +1096,7 @@ end)
 RegisterNetEvent('hud:client:OnMoneyChange', function(type, amount, isMinus)
     cashAmount = PlayerData.money['cash']
     bankAmount = PlayerData.money['bank']
-		if type == 'cash' and amount == 0 then return end
+    if type == 'cash' and amount == 0 then return end
     SendNUIMessage({
         action = 'updatemoney',
         cash = cashAmount,
@@ -1116,9 +1134,11 @@ CreateThread(function() -- Speeding
             local ped = PlayerPedId()
             if IsPedInAnyVehicle(ped, false) then
                 local speed = GetEntitySpeed(GetVehiclePedIsIn(ped, false)) * speedMultiplier
-                local stressSpeed = seatbeltOn and config.MinimumSpeed or config.MinimumSpeedUnbuckled
-                if speed >= stressSpeed then
-                    TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+                local vehClass = GetVehicleClass(GetVehiclePedIsIn(ped, false))
+                if Config.VehClassStress[tostring(vehClass)] then
+                    if speed >= stressSpeed then
+                        TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+                    end
                 end
             end
         end
@@ -1253,20 +1273,23 @@ end)
 
 -- Compass
 function round(num, numDecimalPlaces)
-    local mult = 10^(numDecimalPlaces or 0)
+    local mult = 10 ^ (numDecimalPlaces or 0)
     return math.floor(num + 0.5 * mult)
 end
 
-local prevBaseplateStats = { nil, nil, nil, nil, nil, nil, nil}
+local prevBaseplateStats = { nil, nil, nil, nil, nil, nil, nil }
 
 local function updateBaseplateHud(data)
     local shouldUpdate = false
     for k, v in pairs(data) do
-        if prevBaseplateStats[k] ~= v then shouldUpdate = true break end
+        if prevBaseplateStats[k] ~= v then
+            shouldUpdate = true
+            break
+        end
     end
     prevBaseplateStats = data
     if shouldUpdate then
-        SendNUIMessage ({
+        SendNUIMessage({
             action = 'baseplate',
             topic = 'compassupdate',
             show = data[1],
@@ -1297,10 +1320,10 @@ end
 -- Compass Update loop
 
 CreateThread(function()
-	local heading, lastHeading = 0, 1
+    local heading, lastHeading = 0, 1
     local lastIsOutCompassCheck = Menu.isOutCompassChecked
     local lastInVehicle = false
-	while true do
+    while true do
         if LocalPlayer.state.isLoggedIn then
             Wait(400)
             local show = true
@@ -1322,7 +1345,7 @@ CreateThread(function()
             if heading ~= lastHeading or lastInVehicle ~= playerInVehcile then
                 if playerInVehcile then
                     local crossroads = getCrossroads(player)
-                    SendNUIMessage ({
+                    SendNUIMessage({
                         action = 'update',
                         value = heading
                     })
@@ -1338,11 +1361,11 @@ CreateThread(function()
                     lastInVehicle = true
                 else
                     if not Menu.isOutCompassChecked then
-                        SendNUIMessage ({
+                        SendNUIMessage({
                             action = 'update',
                             value = heading
                         })
-                        SendNUIMessage ({
+                        SendNUIMessage({
                             action = 'baseplate',
                             topic = 'opencompass',
                             show = true,
@@ -1351,7 +1374,7 @@ CreateThread(function()
                         prevBaseplateStats[1] = true
                         prevBaseplateStats[4] = true
                     else
-                        SendNUIMessage ({
+                        SendNUIMessage({
                             action = 'baseplate',
                             topic = 'closecompass',
                             show = false,
@@ -1364,14 +1387,14 @@ CreateThread(function()
             lastHeading = heading
             if lastIsOutCompassCheck ~= Menu.isOutCompassChecked and not IsPedInAnyVehicle(player) then
                 if not Menu.isOutCompassChecked then
-                    SendNUIMessage ({
+                    SendNUIMessage({
                         action = 'baseplate',
                         topic = 'opencompass',
                         show = true,
                         showCompass = true,
                     })
                 else
-                    SendNUIMessage ({
+                    SendNUIMessage({
                         action = 'baseplate',
                         topic = 'closecompass',
                         show = false,
