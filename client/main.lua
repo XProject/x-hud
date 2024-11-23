@@ -26,70 +26,27 @@ local dev = false
 local admin = false
 local playerDead = false
 local showMenu = false
-local showCircleB = false
-local showSquareB = false
-local CinematicHeight = 0.2
-local w = 0
 local radioTalking = false
-local Menu = {
-    isOutMapChecked = true,             -- isOutMapChecked
-    isOutCompassChecked = true,         -- isOutCompassChecked
-    isCompassFollowChecked = true,      -- isCompassFollowChecked
-    isOpenMenuSoundsChecked = true,     -- isOpenMenuSoundsChecked
-    isResetSoundsChecked = true,        -- isResetSoundsChecked
-    isListSoundsChecked = true,         -- isListSoundsChecked
-    isMapNotifChecked = true,           -- isMapNotifChecked
-    isLowFuelChecked = true,            -- isLowFuelChecked
-    isCinematicNotifChecked = true,     -- isCinematicNotifChecked
-    isMapEnabledChecked = false,        -- isMapEnabledChecked
-    isToggleMapBordersChecked = true,   -- isToggleMapBordersChecked
-    isDynamicEngineChecked = true,      -- isDynamicEngineChecked
-    isDynamicNitroChecked = true,       -- isDynamicNitroChecked
-    isChangeCompassFPSChecked = true,   -- isChangeCompassFPSChecked
-    isCompassShowChecked = true,        -- isShowCompassChecked
-    isShowStreetsChecked = true,        -- isShowStreetsChecked
-    isPointerShowChecked = true,        -- isPointerShowChecked
-    isDegreesShowChecked = true,        -- isDegreesShowChecked
-    isCineamticModeChecked = false,     -- isCineamticModeChecked
-    isToggleMapShapeChecked = "square", -- isToggleMapShapeChecked
-}
 
-DisplayRadar(false)
 
-local function CinematicShow(bool)
-    SetRadarBigmapEnabled(true, false)
-    Wait(0)
-    SetRadarBigmapEnabled(false, false)
-    if bool then
-        for i = CinematicHeight, 0, -1.0 do
-            Wait(10)
-            w = i
-        end
-    else
-        for i = 0, CinematicHeight, 1.0 do
-            Wait(10)
-            w = i
-        end
-    end
-end
+lib.locale()
+local utils = require("shared.utils")
+local radar = require("modules.radar.client")
+local menuConfig = require("modules.menuConfig.client")
 
+radar.toggleMinimap(false)
+
+RegisterNetEvent("hud:client:LoadMap", radar.loadMap)
+
+---TODO
 local function hasHarness()
-    local ped = PlayerPedId()
-    if not IsPedInAnyVehicle(ped, false) then return end
+    if not cache.vehicle then return end
 
-    local _harness = false
-    local hasHarness = exports["qb-smallresources"]:HasHarness()
-    if hasHarness then
-        _harness = true
-    else
-        _harness = false
-    end
-
-    harness = _harness
+    harness = false
 end
 
 local function loadSettings()
-    QBCore.Functions.Notify(Lang:t("notify.hud_settings_loaded"), "success")
+    utils.showNotification(locale("hud_settings_loaded"))
     Wait(1000)
     TriggerEvent("hud:client:LoadMap")
 end
@@ -356,17 +313,6 @@ RegisterNUICallback("showFollowCompass", function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback("showMapNotif", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isMapNotifChecked = true
-    else
-        Menu.isMapNotifChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
 RegisterNUICallback("showFuelAlert", function(data, cb)
     cb({})
     Wait(50)
@@ -378,154 +324,10 @@ RegisterNUICallback("showFuelAlert", function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback("showCinematicNotif", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isCinematicNotifChecked = true
-    else
-        Menu.isCinematicNotifChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
 -- Status
 RegisterNUICallback("dynamicChange", function(_, cb)
     cb({})
     Wait(50)
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
--- Vehicle
-RegisterNUICallback("HideMap", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isMapEnabledChecked = true
-    else
-        Menu.isMapEnabledChecked = false
-    end
-    DisplayRadar(Menu.isMapEnabledChecked)
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
-RegisterNetEvent("hud:client:LoadMap", function()
-    Wait(50)
-    -- Credit to Dalrae for the solve.
-    local defaultAspectRatio = 1920 / 1080 -- Don"t change this.
-    local resolutionX, resolutionY = GetActiveScreenResolution()
-    local aspectRatio = resolutionX / resolutionY
-    local minimapOffset = 0
-    if aspectRatio > defaultAspectRatio then
-        minimapOffset = ((defaultAspectRatio - aspectRatio) / 3.6) - 0.008
-    end
-    if Menu.isToggleMapShapeChecked == "square" then
-        RequestStreamedTextureDict("squaremap", false)
-        if not HasStreamedTextureDictLoaded("squaremap") then
-            Wait(150)
-        end
-        if Menu.isMapNotifChecked then
-            QBCore.Functions.Notify(Lang:t("notify.load_square_map"))
-        end
-        SetMinimapClipType(0)
-        AddReplaceTexture("platform:/textures/graphics", "radarmasksm", "squaremap", "radarmasksm")
-        AddReplaceTexture("platform:/textures/graphics", "radarmask1g", "squaremap", "radarmasksm")
-        -- 0.0 = nav symbol and icons left
-        -- 0.1638 = nav symbol and icons stretched
-        -- 0.216 = nav symbol and icons raised up
-        SetMinimapComponentPosition("minimap", "L", "B", 0.0 + minimapOffset, -0.047, 0.1638, 0.183)
-
-        -- icons within map
-        SetMinimapComponentPosition("minimap_mask", "L", "B", 0.0 + minimapOffset, 0.0, 0.128, 0.20)
-
-        -- -0.01 = map pulled left
-        -- 0.025 = map raised up
-        -- 0.262 = map stretched
-        -- 0.315 = map shorten
-        SetMinimapComponentPosition("minimap_blur", "L", "B", -0.01 + minimapOffset, 0.025, 0.262, 0.300)
-        SetBlipAlpha(GetNorthRadarBlip(), 0)
-        SetRadarBigmapEnabled(true, false)
-        SetMinimapClipType(0)
-        Wait(50)
-        SetRadarBigmapEnabled(false, false)
-        if Menu.isToggleMapBordersChecked then
-            showCircleB = false
-            showSquareB = true
-        end
-        Wait(1200)
-        if Menu.isMapNotifChecked then
-            QBCore.Functions.Notify(Lang:t("notify.loaded_square_map"))
-        end
-    elseif Menu.isToggleMapShapeChecked == "circle" then
-        RequestStreamedTextureDict("circlemap", false)
-        if not HasStreamedTextureDictLoaded("circlemap") then
-            Wait(150)
-        end
-        if Menu.isMapNotifChecked then
-            QBCore.Functions.Notify(Lang:t("notify.load_circle_map"))
-        end
-        SetMinimapClipType(1)
-        AddReplaceTexture("platform:/textures/graphics", "radarmasksm", "circlemap", "radarmasksm")
-        AddReplaceTexture("platform:/textures/graphics", "radarmask1g", "circlemap", "radarmasksm")
-        -- -0.0100 = nav symbol and icons left
-        -- 0.180 = nav symbol and icons stretched
-        -- 0.258 = nav symbol and icons raised up
-        SetMinimapComponentPosition("minimap", "L", "B", -0.0100 + minimapOffset, -0.030, 0.180, 0.258)
-
-        -- icons within map
-        SetMinimapComponentPosition("minimap_mask", "L", "B", 0.200 + minimapOffset, 0.0, 0.065, 0.20)
-
-        -- -0.00 = map pulled left
-        -- 0.015 = map raised up
-        -- 0.252 = map stretched
-        -- 0.338 = map shorten
-        SetMinimapComponentPosition("minimap_blur", "L", "B", -0.00 + minimapOffset, 0.015, 0.252, 0.338)
-        SetBlipAlpha(GetNorthRadarBlip(), 0)
-        SetMinimapClipType(1)
-        SetRadarBigmapEnabled(true, false)
-        Wait(50)
-        SetRadarBigmapEnabled(false, false)
-        if Menu.isToggleMapBordersChecked then
-            showSquareB = false
-            showCircleB = true
-        end
-        Wait(1200)
-        if Menu.isMapNotifChecked then
-            QBCore.Functions.Notify(Lang:t("notify.loaded_circle_map"))
-        end
-    end
-end)
-
-RegisterNUICallback("ToggleMapShape", function(data, cb)
-    cb({})
-    Wait(50)
-    if Menu.isMapEnabledChecked then
-        Menu.isToggleMapShapeChecked = data.shape
-        Wait(50)
-        TriggerEvent("hud:client:LoadMap")
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
-RegisterNUICallback("ToggleMapBorders", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isToggleMapBordersChecked = true
-    else
-        Menu.isToggleMapBordersChecked = false
-    end
-
-    if Menu.isToggleMapBordersChecked then
-        if Menu.isToggleMapShapeChecked == "square" then
-            showSquareB = true
-        else
-            showCircleB = true
-        end
-    else
-        showSquareB = false
-        showCircleB = false
-    end
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
@@ -585,28 +387,6 @@ RegisterNUICallback("changeCompassFPS", function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback("cinematicMode", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        CinematicShow(true)
-        if Menu.isCinematicNotifChecked then
-            QBCore.Functions.Notify(Lang:t("notify.cinematic_on"))
-        end
-    else
-        CinematicShow(false)
-        if Menu.isCinematicNotifChecked then
-            QBCore.Functions.Notify(Lang:t("notify.cinematic_off"), "error")
-        end
-        local player = PlayerPedId()
-        local vehicle = GetVehiclePedIsIn(player, false)
-        if (IsPedInAnyVehicle(player, false) and not IsThisModelABicycle(vehicle)) or not Menu.isOutMapChecked then
-            DisplayRadar(true)
-        end
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
 RegisterNUICallback("updateMenuSettingsToClient", function(data, cb)
     Menu.isOutMapChecked = data.isOutMapChecked
     Menu.isOutCompassChecked = data.isOutCompassChecked
@@ -614,16 +394,16 @@ RegisterNUICallback("updateMenuSettingsToClient", function(data, cb)
     Menu.isOpenMenuSoundsChecked = data.isOpenMenuSoundsChecked
     Menu.isResetSoundsChecked = data.isResetSoundsChecked
     Menu.isListSoundsChecked = data.isListSoundsChecked
-    Menu.isMapNotifChecked = data.isMapNotifyChecked
+    menuConfig:set("isMapNotifChecked", data.isMapNotifyChecked)
     Menu.isLowFuelChecked = data.isLowFuelAlertChecked
-    Menu.isCinematicNotifChecked = data.isCinematicNotifyChecked
-    Menu.isMapEnabledChecked = data.isMapEnabledChecked
-    Menu.isToggleMapShapeChecked = data.isToggleMapShapeChecked
-    Menu.isToggleMapBordersChecked = data.isToggleMapBordersChecked
+    menuConfig:set("isCinematicNotifChecked", data.isCinematicNotifyChecked)
+    menuConfig:set("isMapEnabledChecked", data.isMapEnabledChecked)
+    menuConfig:set("isToggleMapShapeChecked", data.isToggleMapShapeChecked)
+    menuConfig:set("isToggleMapBordersChecked", data.isToggleMapBordersChecked)
     Menu.isCompassShowChecked = data.isShowCompassChecked
     Menu.isShowStreetsChecked = data.isShowStreetsChecked
     Menu.isPointerShowChecked = data.isPointerShowChecked
-    CinematicShow(data.isCineamticModeChecked)
+    radar.cinematicMode(data.isCineamticModeChecked)
     cb({})
 end)
 
@@ -980,7 +760,7 @@ CreateThread(function()
 
             if IsPedInAnyVehicle(player, false) and not IsThisModelABicycle(vehicle) then
                 if not wasInVehicle then
-                    DisplayRadar(Menu.isMapEnabledChecked)
+                    radar.toggleMinimap(menuConfig:get("isMapEnabledChecked"))
                 end
 
                 wasInVehicle = true
@@ -1020,8 +800,8 @@ CreateThread(function()
                     math.ceil(GetEntityCoords(player).z * 0.5),
                     showAltitude,
                     showSeatbelt,
-                    showSquareB,
-                    showCircleB,
+                    radar.isBorderSquare(),
+                    radar.isBorderCircle(),
                 })
                 showAltitude = false
                 showSeatbelt = true
@@ -1247,28 +1027,6 @@ CreateThread(function()
         SetRadarBigmapEnabled(false, false)
         SetRadarZoom(1000)
         Wait(500)
-    end
-end)
-
-local function BlackBars()
-    DrawRect(0.0, 0.0, 2.0, w, 0, 0, 0, 255)
-    DrawRect(0.0, 1.0, 2.0, w, 0, 0, 0, 255)
-end
-
-CreateThread(function()
-    local minimap = RequestScaleformMovie("minimap")
-    if not HasScaleformMovieLoaded(minimap) then
-        RequestScaleformMovie(minimap --[[@as string]])
-        while not HasScaleformMovieLoaded(minimap) do
-            Wait(1)
-        end
-    end
-    while true do
-        if w > 0 then
-            BlackBars()
-            DisplayRadar(false)
-        end
-        Wait(0)
     end
 end)
 
