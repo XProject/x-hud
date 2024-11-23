@@ -146,12 +146,12 @@ RegisterNUICallback("closeMenu", function(_, cb)
     SetNuiFocus(false, false)
 end)
 
-RegisterKeyMapping("menu", Lang:t("info.open_menu"), "keyboard", Config.OpenMenu)
+RegisterKeyMapping("menu", locale("open_menu"), "keyboard", Config.OpenMenu)
 
 -- Reset hud
 local function restartHud()
     TriggerEvent("hud:client:playResetHudSounds")
-    QBCore.Functions.Notify(Lang:t("notify.hud_restart"), "error")
+    QBCore.Functions.Notify(locale("hud_restart"), "error")
     Wait(1500)
     if IsPedInAnyVehicle(PlayerPedId(), false) then
         SendNUIMessage({
@@ -180,7 +180,7 @@ local function restartHud()
         show = true,
     })
     Wait(500)
-    QBCore.Functions.Notify(Lang:t("notify.hud_start"), "success")
+    QBCore.Functions.Notify(locale("hud_start"), "success")
     SendNUIMessage({
         action = "menu",
         topic = "restart",
@@ -531,14 +531,14 @@ RegisterCommand("+engine", function()
     local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
     if vehicle == 0 or GetPedInVehicleSeat(vehicle, -1) ~= PlayerPedId() then return end
     if GetIsVehicleEngineRunning(vehicle) then
-        QBCore.Functions.Notify(Lang:t("notify.engine_off"))
+        QBCore.Functions.Notify(locale("engine_off"))
     else
-        QBCore.Functions.Notify(Lang:t("notify.engine_on"))
+        QBCore.Functions.Notify(locale("engine_on"))
     end
     SetVehicleEngineOn(vehicle, not GetIsVehicleEngineRunning(vehicle), false, true)
 end, false)
 
-RegisterKeyMapping("+engine", Lang:t("info.toggle_engine"), "keyboard", "G")
+RegisterKeyMapping("+engine", locale("toggle_engine"), "keyboard", "G")
 
 local function IsWhitelistedWeaponArmed(weapon)
     if weapon then
@@ -846,7 +846,7 @@ CreateThread(function()
                 if exports[Config.FuelScript]:GetFuel(GetVehiclePedIsIn(ped, false)) <= 20 then -- At 20% Fuel Left
                     if Menu.isLowFuelChecked then
                         TriggerServerEvent("InteractSound_SV:PlayOnSource", "pager", 0.10)
-                        QBCore.Functions.Notify(Lang:t("notify.low_fuel"), "error")
+                        QBCore.Functions.Notify(locale("low_fuel"), "error")
                         Wait(60000) -- repeats every 1 min until empty
                     end
                 end
