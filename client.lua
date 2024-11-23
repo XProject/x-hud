@@ -16,9 +16,9 @@ local thirst = 100
 local cashAmount = 0
 local bankAmount = 0
 local nitroActive = 0
-local harness = 0
+local harness = false
 local hp = 100
-local armed = 0
+local armed = false
 local parachute = -1
 local oxygen = 100
 local engine = 0
@@ -179,7 +179,7 @@ RegisterCommand('menu', function()
     SetNuiFocus(true, true)
     SendNUIMessage({ action = "open" })
     showMenu = true
-end)
+end, false)
 
 RegisterNUICallback('closeMenu', function(_, cb)
     cb({})
@@ -196,7 +196,7 @@ local function restartHud()
     TriggerEvent("hud:client:playResetHudSounds")
     QBCore.Functions.Notify(Lang:t("notify.hud_restart"), "error")
     Wait(1500)
-    if IsPedInAnyVehicle(PlayerPedId()) then
+    if IsPedInAnyVehicle(PlayerPedId(), false) then
         SendNUIMessage({
             action = 'car',
             topic = 'display',
@@ -239,7 +239,7 @@ end)
 RegisterCommand('resethud', function()
     Wait(50)
     restartHud()
-end)
+end, false)
 
 RegisterNUICallback('resetStorage', function(_, cb)
     cb({})
@@ -253,7 +253,8 @@ RegisterNetEvent("hud:client:resetStorage", function()
         TriggerServerEvent("InteractSound_SV:PlayOnSource", "airwrench", 0.1)
     end
     QBCore.Functions.TriggerCallback('hud:server:getMenu', function(menu)
-        loadSettings(menu); SetResourceKvp('hudSettings', json.encode(menu))
+        loadSettings()
+        SetResourceKvp('hudSettings', json.encode(menu))
     end)
 end)
 
@@ -598,8 +599,8 @@ RegisterNUICallback('cinematicMode', function(data, cb)
             QBCore.Functions.Notify(Lang:t("notify.cinematic_off"), 'error')
         end
         local player = PlayerPedId()
-        local vehicle = GetVehiclePedIsIn(player)
-        if (IsPedInAnyVehicle(player) and not IsThisModelABicycle(vehicle)) or not Menu.isOutMapChecked then
+        local vehicle = GetVehiclePedIsIn(player, false)
+        if (IsPedInAnyVehicle(player, false) and not IsThisModelABicycle(vehicle)) or not Menu.isOutMapChecked then
             DisplayRadar(true)
         end
     end
@@ -755,7 +756,7 @@ RegisterCommand('+engine', function()
         QBCore.Functions.Notify(Lang:t("notify.engine_on"))
     end
     SetVehicleEngineOn(vehicle, not GetIsVehicleEngineRunning(vehicle), false, true)
-end)
+end, false)
 
 RegisterKeyMapping('+engine', Lang:t('info.toggle_engine'), 'keyboard', 'G')
 
@@ -878,7 +879,7 @@ local function updateVehicleHud(data)
 end
 
 local lastFuelUpdate = 0
-local lastFuelCheck = {}
+local lastFuelCheck = 0
 
 local function getFuelLevel(vehicle)
     local updateTick = GetGameTimer()
@@ -940,9 +941,9 @@ CreateThread(function()
                 show = false
             end
 
-            local vehicle = GetVehiclePedIsIn(player)
+            local vehicle = GetVehiclePedIsIn(player, false)
 
-            if not (IsPedInAnyVehicle(player) and not IsThisModelABicycle(vehicle)) then
+            if not (IsPedInAnyVehicle(player, false) and not IsThisModelABicycle(vehicle)) then
                 updatePlayerHud({
                     show,
                     GetEntityHealth(player) - 100,
@@ -977,7 +978,7 @@ CreateThread(function()
                 showSeatbelt = false
             end
 
-            if IsPedInAnyVehicle(player) and not IsThisModelABicycle(vehicle) then
+            if IsPedInAnyVehicle(player, false) and not IsThisModelABicycle(vehicle) then
                 if not wasInVehicle then
                     DisplayRadar(Menu.isMapEnabledChecked)
                 end
@@ -1214,7 +1215,7 @@ CreateThread(function()
                 TriggerScreenblurFadeOut(1000.0)
 
                 if not IsPedRagdoll(ped) and IsPedOnFoot(ped) and not IsPedSwimming(ped) then
-                    SetPedToRagdollWithFall(ped, RagdollTimeout, RagdollTimeout, 1, GetEntityForwardVector(ped), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+                    SetPedToRagdollWithFall(ped, RagdollTimeout, RagdollTimeout, 1, GetEntityForwardVector(ped) --[[@as number]], 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
                 end
 
                 Wait(1000)
@@ -1257,7 +1258,7 @@ end
 CreateThread(function()
     local minimap = RequestScaleformMovie("minimap")
     if not HasScaleformMovieLoaded(minimap) then
-        RequestScaleformMovie(minimap)
+        RequestScaleformMovie(minimap --[[@as string]])
         while not HasScaleformMovieLoaded(minimap) do
             Wait(1)
         end
@@ -1265,7 +1266,7 @@ CreateThread(function()
     while true do
         if w > 0 then
             BlackBars()
-            DisplayRadar(0)
+            DisplayRadar(false)
         end
         Wait(0)
     end
@@ -1320,7 +1321,7 @@ end
 -- Compass Update loop
 
 CreateThread(function()
-    local heading, lastHeading = 0, 1
+    local heading, lastHeading = "0", "1"
     local lastIsOutCompassCheck = Menu.isOutCompassChecked
     local lastInVehicle = false
     while true do
@@ -1340,7 +1341,7 @@ CreateThread(function()
                 heading = '0'
             end
 
-            local playerInVehcile = IsPedInAnyVehicle(player)
+            local playerInVehcile = IsPedInAnyVehicle(player, false)
 
             if heading ~= lastHeading or lastInVehicle ~= playerInVehcile then
                 if playerInVehcile then
@@ -1385,7 +1386,7 @@ CreateThread(function()
                 end
             end
             lastHeading = heading
-            if lastIsOutCompassCheck ~= Menu.isOutCompassChecked and not IsPedInAnyVehicle(player) then
+            if lastIsOutCompassCheck ~= Menu.isOutCompassChecked and not IsPedInAnyVehicle(player, false) then
                 if not Menu.isOutCompassChecked then
                     SendNUIMessage({
                         action = 'baseplate',

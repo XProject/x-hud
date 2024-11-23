@@ -63,28 +63,32 @@ end)
 
 RegisterNetEvent('hud:server:saveUIData', function(data)
     local src = source
-	-- Check Permissions
+    -- Check Permissions
     if not QBCore.Functions.HasPermission(src, 'admin') and not IsPlayerAceAllowed(src, 'command') then
-		return
-	end
+        return
+    end
 
     -- Ensure a player is invoking this net event
     local Player = QBCore.Functions.GetPlayer(src)
-	if not Player then return end
+    if not Player then return end
 
     local uiConfigData = {}
     uiConfigData.icons = {}
 
     local path = GetResourcePath(GetCurrentResourceName())
-    path = path:gsub('//', '/')..'/uiconfig.lua'
+    path = path:gsub('//', '/') .. '/uiconfig.lua'
     local file = io.open(path, 'w+')
+
+    if not file then
+        return error(("file at %s was not found!"):format(path))
+    end
 
     local heading = "UIConfig = {}\n"
     file:write(heading)
 
     -- write out icons
     file:write("\nUIConfig.icons = {}\n")
-    
+
     -- Sort the icons so its easier to find in the config file
     local iconKeys = {}
     for k, _ in pairs(data.icons) do
@@ -95,7 +99,7 @@ RegisterNetEvent('hud:server:saveUIData', function(data)
     for _, iconName in ipairs(iconKeys) do
         uiConfigData.icons[iconName] = {}
 
-        local iconLabel = "\nUIConfig.icons['"..iconName.."'] = {"
+        local iconLabel = "\nUIConfig.icons['" .. iconName .. "'] = {"
         file:write(iconLabel)
 
         -- sort the values as well inside icons
@@ -151,14 +155,14 @@ RegisterNetEvent('hud:server:saveUIData', function(data)
         uiConfigData.colors[colorName] = {}
         uiConfigData.colors[colorName].colorEffects = {}
 
-        local colorLabel = "\nUIConfig.colors['"..colorName.."'] = {"
+        local colorLabel = "\nUIConfig.colors['" .. colorName .. "'] = {"
         file:write(colorLabel)
 
         local colorEffectsLabel = "\n    colorEffects = {"
         file:write(colorEffectsLabel)
 
         for k, v in ipairs(data.colors[colorName].colorEffects) do
-            local colorEffectIndexLabel = "\n        ["..k.."] = {"
+            local colorEffectIndexLabel = "\n        [" .. k .. "] = {"
             file:write(colorEffectIndexLabel)
 
             -- sort the values as well inside color effects
@@ -196,7 +200,7 @@ end)
 
 QBCore.Functions.CreateCallback('hud:server:getMenu', function(source, cb)
     cb(Config.Menu)
-end) 
+end)
 
 QBCore.Functions.CreateCallback('hud:server:getRank', function(source, cb)
     local src = source
