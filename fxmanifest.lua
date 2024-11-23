@@ -1,24 +1,27 @@
-fx_version 'cerulean'
-game 'gta5'
+fx_version "cerulean"
+use_experimental_fxv2_oal "yes"
+lua54 "yes"
+game "gta5"
 
-description 'ps-hud'
-version '2.1.2'
+name "ps-hud"
+version "2.1.2"
+description "HUD"
 
 shared_scripts {
-	'@qb-core/shared/locale.lua',
-	'locales/en.lua',
-	'locales/*.lua',
-	'config.lua',
-	'uiconfig.lua'
+	"@ox_lib/init.lua",
+	"shared/*.lua"
 }
 
-client_script 'client.lua'
-server_script 'server.lua'
-lua54 'yes'
-use_fxv2_oal 'yes'
+server_scripts {
+	"server/*.lua"
+}
 
-ui_page 'html/index.html'
+client_scripts {
+	"client/*.lua",
+}
+
+ui_page "html/index.html"
 
 files {
-	'html/*',
+	"html/*",
 }

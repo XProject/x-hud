@@ -1,4 +1,4 @@
-local QBCore = exports['qb-core']:GetCoreObject()
+local QBCore = exports["qb-core"]:GetCoreObject()
 local serverId = GetPlayerServerId(PlayerId())
 local PlayerData = QBCore.Functions.GetPlayerData()
 local config = Config
@@ -51,7 +51,7 @@ local Menu = {
     isPointerShowChecked = true,        -- isPointerShowChecked
     isDegreesShowChecked = true,        -- isDegreesShowChecked
     isCineamticModeChecked = false,     -- isCineamticModeChecked
-    isToggleMapShapeChecked = 'square', -- isToggleMapShapeChecked
+    isToggleMapShapeChecked = "square", -- isToggleMapShapeChecked
 }
 
 DisplayRadar(false)
@@ -78,7 +78,7 @@ local function hasHarness()
     if not IsPedInAnyVehicle(ped, false) then return end
 
     local _harness = false
-    local hasHarness = exports['qb-smallresources']:HasHarness()
+    local hasHarness = exports["qb-smallresources"]:HasHarness()
     if hasHarness then
         _harness = true
     else
@@ -96,8 +96,8 @@ end
 
 local function SendAdminStatus()
     SendNUIMessage({
-        action = 'menu',
-        topic = 'adminonly',
+        action = "menu",
+        topic = "adminonly",
         adminOnly = Config.AdminOnly,
         isAdmin = admin,
     })
@@ -105,7 +105,7 @@ end
 
 local function sendUIUpdateMessage(data)
     SendNUIMessage({
-        action = 'updateUISettings',
+        action = "updateUISettings",
         icons = data.icons,
         layout = data.layout,
         colors = data.colors,
@@ -114,13 +114,13 @@ end
 
 local function sendUILang()
     SendNUIMessage({
-        action = 'setLang',
-        lang = GetConvar('qb_locale', 'en')
+        action = "setLang",
+        lang = GetConvar("qb_locale", "en")
     })
 end
 
 local function HandleSetupResource()
-    QBCore.Functions.TriggerCallback('hud:server:getRank', function(isAdminOrGreater)
+    QBCore.Functions.TriggerCallback("hud:server:getRank", function(isAdminOrGreater)
         if isAdminOrGreater then
             admin = true
         else
@@ -140,7 +140,7 @@ end
 RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()
     Wait(2000)
     HandleSetupResource()
-    -- local hudSettings = GetResourceKvpString('hudSettings')
+    -- local hudSettings = GetResourceKvpString("hudSettings")
     -- if hudSettings then loadSettings(json.decode(hudSettings)) end
     loadSettings()
     PlayerData = QBCore.Functions.GetPlayerData()
@@ -157,12 +157,12 @@ RegisterNetEvent("QBCore:Player:SetPlayerData", function(val)
 end)
 
 -- Event Handlers
-AddEventHandler('onResourceStart', function(resourceName)
+AddEventHandler("onResourceStart", function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
     Wait(1000)
 
     HandleSetupResource()
-    -- local hudSettings = GetResourceKvpString('hudSettings')
+    -- local hudSettings = GetResourceKvpString("hudSettings")
     -- if hudSettings then loadSettings(json.decode(hudSettings)) end
     loadSettings()
 end)
@@ -172,7 +172,7 @@ AddEventHandler("pma-voice:radioActive", function(isRadioTalking)
 end)
 
 -- Callbacks & Events
-RegisterCommand('menu', function()
+RegisterCommand("menu", function()
     Wait(50)
     if showMenu then return end
     TriggerEvent("hud:client:playOpenMenuSounds")
@@ -181,7 +181,7 @@ RegisterCommand('menu', function()
     showMenu = true
 end, false)
 
-RegisterNUICallback('closeMenu', function(_, cb)
+RegisterNUICallback("closeMenu", function(_, cb)
     cb({})
     Wait(50)
     TriggerEvent("hud:client:playCloseMenuSounds")
@@ -189,7 +189,7 @@ RegisterNUICallback('closeMenu', function(_, cb)
     SetNuiFocus(false, false)
 end)
 
-RegisterKeyMapping('menu', Lang:t('info.open_menu'), 'keyboard', Config.OpenMenu)
+RegisterKeyMapping("menu", Lang:t("info.open_menu"), "keyboard", Config.OpenMenu)
 
 -- Reset hud
 local function restartHud()
@@ -198,50 +198,50 @@ local function restartHud()
     Wait(1500)
     if IsPedInAnyVehicle(PlayerPedId(), false) then
         SendNUIMessage({
-            action = 'car',
-            topic = 'display',
+            action = "car",
+            topic = "display",
             show = false,
             seatbelt = false,
         })
         Wait(500)
         SendNUIMessage({
-            action = 'car',
-            topic = 'display',
+            action = "car",
+            topic = "display",
             show = true,
             seatbelt = false,
         })
     end
     SendNUIMessage({
-        action = 'hudtick',
-        topic = 'display',
+        action = "hudtick",
+        topic = "display",
         show = false,
     })
     Wait(500)
     SendNUIMessage({
-        action = 'hudtick',
-        topic = 'display',
+        action = "hudtick",
+        topic = "display",
         show = true,
     })
     Wait(500)
     QBCore.Functions.Notify(Lang:t("notify.hud_start"), "success")
     SendNUIMessage({
-        action = 'menu',
-        topic = 'restart',
+        action = "menu",
+        topic = "restart",
     })
 end
 
-RegisterNUICallback('restartHud', function(_, cb)
+RegisterNUICallback("restartHud", function(_, cb)
     cb({})
     Wait(50)
     restartHud()
 end)
 
-RegisterCommand('resethud', function()
+RegisterCommand("resethud", function()
     Wait(50)
     restartHud()
 end, false)
 
-RegisterNUICallback('resetStorage', function(_, cb)
+RegisterNUICallback("resetStorage", function(_, cb)
     cb({})
     Wait(50)
     TriggerEvent("hud:client:resetStorage")
@@ -252,14 +252,14 @@ RegisterNetEvent("hud:client:resetStorage", function()
     if Menu.isResetSoundsChecked then
         TriggerServerEvent("InteractSound_SV:PlayOnSource", "airwrench", 0.1)
     end
-    QBCore.Functions.TriggerCallback('hud:server:getMenu', function(menu)
+    QBCore.Functions.TriggerCallback("hud:server:getMenu", function(menu)
         loadSettings()
-        SetResourceKvp('hudSettings', json.encode(menu))
+        SetResourceKvp("hudSettings", json.encode(menu))
     end)
 end)
 
 -- Notifications
-RegisterNUICallback('openMenuSounds', function(data, cb)
+RegisterNUICallback("openMenuSounds", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -282,7 +282,7 @@ RegisterNetEvent("hud:client:playCloseMenuSounds", function()
     TriggerServerEvent("InteractSound_SV:PlayOnSource", "catclosing", 0.05)
 end)
 
-RegisterNUICallback('resetHudSounds', function(data, cb)
+RegisterNUICallback("resetHudSounds", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -299,7 +299,7 @@ RegisterNetEvent("hud:client:playResetHudSounds", function()
     TriggerServerEvent("InteractSound_SV:PlayOnSource", "airwrench", 0.1)
 end)
 
-RegisterNUICallback('checklistSounds', function(data, cb)
+RegisterNUICallback("checklistSounds", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -316,7 +316,7 @@ RegisterNetEvent("hud:client:playHudChecklistSound", function()
     TriggerServerEvent("InteractSound_SV:PlayOnSource", "shiftyclick", 0.5)
 end)
 
-RegisterNUICallback('showOutMap', function(data, cb)
+RegisterNUICallback("showOutMap", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -327,14 +327,14 @@ RegisterNUICallback('showOutMap', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('saveUISettings', function(data, cb)
+RegisterNUICallback("saveUISettings", function(data, cb)
     cb({})
     Wait(50)
     TriggerEvent("hud:client:playHudChecklistSound")
     TriggerServerEvent("hud:server:saveUIData", data)
 end)
 
-RegisterNUICallback('showOutCompass', function(data, cb)
+RegisterNUICallback("showOutCompass", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -345,7 +345,7 @@ RegisterNUICallback('showOutCompass', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('showFollowCompass', function(data, cb)
+RegisterNUICallback("showFollowCompass", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -356,7 +356,7 @@ RegisterNUICallback('showFollowCompass', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('showMapNotif', function(data, cb)
+RegisterNUICallback("showMapNotif", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -367,7 +367,7 @@ RegisterNUICallback('showMapNotif', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('showFuelAlert', function(data, cb)
+RegisterNUICallback("showFuelAlert", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -378,7 +378,7 @@ RegisterNUICallback('showFuelAlert', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('showCinematicNotif', function(data, cb)
+RegisterNUICallback("showCinematicNotif", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -390,14 +390,14 @@ RegisterNUICallback('showCinematicNotif', function(data, cb)
 end)
 
 -- Status
-RegisterNUICallback('dynamicChange', function(_, cb)
+RegisterNUICallback("dynamicChange", function(_, cb)
     cb({})
     Wait(50)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
 -- Vehicle
-RegisterNUICallback('HideMap', function(data, cb)
+RegisterNUICallback("HideMap", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -412,7 +412,7 @@ end)
 RegisterNetEvent("hud:client:LoadMap", function()
     Wait(50)
     -- Credit to Dalrae for the solve.
-    local defaultAspectRatio = 1920 / 1080 -- Don't change this.
+    local defaultAspectRatio = 1920 / 1080 -- Don"t change this.
     local resolutionX, resolutionY = GetActiveScreenResolution()
     local aspectRatio = resolutionX / resolutionY
     local minimapOffset = 0
@@ -442,7 +442,7 @@ RegisterNetEvent("hud:client:LoadMap", function()
         -- 0.025 = map raised up
         -- 0.262 = map stretched
         -- 0.315 = map shorten
-        SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01 + minimapOffset, 0.025, 0.262, 0.300)
+        SetMinimapComponentPosition("minimap_blur", "L", "B", -0.01 + minimapOffset, 0.025, 0.262, 0.300)
         SetBlipAlpha(GetNorthRadarBlip(), 0)
         SetRadarBigmapEnabled(true, false)
         SetMinimapClipType(0)
@@ -479,7 +479,7 @@ RegisterNetEvent("hud:client:LoadMap", function()
         -- 0.015 = map raised up
         -- 0.252 = map stretched
         -- 0.338 = map shorten
-        SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.00 + minimapOffset, 0.015, 0.252, 0.338)
+        SetMinimapComponentPosition("minimap_blur", "L", "B", -0.00 + minimapOffset, 0.015, 0.252, 0.338)
         SetBlipAlpha(GetNorthRadarBlip(), 0)
         SetMinimapClipType(1)
         SetRadarBigmapEnabled(true, false)
@@ -496,7 +496,7 @@ RegisterNetEvent("hud:client:LoadMap", function()
     end
 end)
 
-RegisterNUICallback('ToggleMapShape', function(data, cb)
+RegisterNUICallback("ToggleMapShape", function(data, cb)
     cb({})
     Wait(50)
     if Menu.isMapEnabledChecked then
@@ -507,7 +507,7 @@ RegisterNUICallback('ToggleMapShape', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('ToggleMapBorders', function(data, cb)
+RegisterNUICallback("ToggleMapBorders", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -530,7 +530,7 @@ RegisterNUICallback('ToggleMapBorders', function(data, cb)
 end)
 
 -- Compass
-RegisterNUICallback('showCompassBase', function(data, cb)
+RegisterNUICallback("showCompassBase", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -541,7 +541,7 @@ RegisterNUICallback('showCompassBase', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('showStreetsNames', function(data, cb)
+RegisterNUICallback("showStreetsNames", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -552,7 +552,7 @@ RegisterNUICallback('showStreetsNames', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('showPointerIndex', function(data, cb)
+RegisterNUICallback("showPointerIndex", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -563,7 +563,7 @@ RegisterNUICallback('showPointerIndex', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('showDegreesNum', function(data, cb)
+RegisterNUICallback("showDegreesNum", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -574,7 +574,7 @@ RegisterNUICallback('showDegreesNum', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('changeCompassFPS', function(data, cb)
+RegisterNUICallback("changeCompassFPS", function(data, cb)
     cb({})
     Wait(50)
     if data.fps == "optimized" then
@@ -585,7 +585,7 @@ RegisterNUICallback('changeCompassFPS', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('cinematicMode', function(data, cb)
+RegisterNUICallback("cinematicMode", function(data, cb)
     cb({})
     Wait(50)
     if data.checked then
@@ -596,7 +596,7 @@ RegisterNUICallback('cinematicMode', function(data, cb)
     else
         CinematicShow(false)
         if Menu.isCinematicNotifChecked then
-            QBCore.Functions.Notify(Lang:t("notify.cinematic_off"), 'error')
+            QBCore.Functions.Notify(Lang:t("notify.cinematic_off"), "error")
         end
         local player = PlayerPedId()
         local vehicle = GetVehiclePedIsIn(player, false)
@@ -607,7 +607,7 @@ RegisterNUICallback('cinematicMode', function(data, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
-RegisterNUICallback('updateMenuSettingsToClient', function(data, cb)
+RegisterNUICallback("updateMenuSettingsToClient", function(data, cb)
     Menu.isOutMapChecked = data.isOutMapChecked
     Menu.isOutCompassChecked = data.isOutCompassChecked
     Menu.isCompassFollowChecked = data.isCompassFollowChecked
@@ -631,49 +631,49 @@ RegisterNetEvent("hud:client:EngineHealth", function(newEngine)
     engine = newEngine
 end)
 
-RegisterNetEvent('hud:client:ToggleAirHud', function()
+RegisterNetEvent("hud:client:ToggleAirHud", function()
     showAltitude = not showAltitude
 end)
 
-RegisterNetEvent('hud:client:UpdateNeeds', function(newHunger, newThirst) -- Triggered in qb-core
+RegisterNetEvent("hud:client:UpdateNeeds", function(newHunger, newThirst) -- Triggered in qb-core
     hunger = newHunger
     thirst = newThirst
 end)
 
-AddStateBagChangeHandler('hunger', ('player:%s'):format(serverId), function(_, _, value)
+AddStateBagChangeHandler("hunger", ("player:%s"):format(serverId), function(_, _, value)
     hunger = value
 end)
 
-AddStateBagChangeHandler('thirst', ('player:%s'):format(serverId), function(_, _, value)
+AddStateBagChangeHandler("thirst", ("player:%s"):format(serverId), function(_, _, value)
     thirst = value
 end)
 
-AddStateBagChangeHandler('stress', ('player:%s'):format(serverId), function(_, _, value)
+AddStateBagChangeHandler("stress", ("player:%s"):format(serverId), function(_, _, value)
     stress = value
 end)
 
-RegisterNetEvent('hud:client:UpdateStress', function(newStress) -- Add this event with adding stress elsewhere
+RegisterNetEvent("hud:client:UpdateStress", function(newStress) -- Add this event with adding stress elsewhere
     stress = newStress
 end)
 
-RegisterNetEvent('hud:client:ToggleShowSeatbelt', function()
+RegisterNetEvent("hud:client:ToggleShowSeatbelt", function()
     showSeatbelt = not showSeatbelt
 end)
 
-RegisterNetEvent('seatbelt:client:ToggleSeatbelt', function() -- Triggered in smallresources
+RegisterNetEvent("seatbelt:client:ToggleSeatbelt", function() -- Triggered in smallresources
     seatbeltOn = not seatbeltOn
 end)
 
-RegisterNetEvent('seatbelt:client:ToggleCruise', function() -- Triggered in smallresources
+RegisterNetEvent("seatbelt:client:ToggleCruise", function() -- Triggered in smallresources
     cruiseOn = not cruiseOn
 end)
 
-RegisterNetEvent('hud:client:UpdateNitrous', function(hasNitro, nitroLevel, bool)
+RegisterNetEvent("hud:client:UpdateNitrous", function(hasNitro, nitroLevel, bool)
     nos = nitroLevel
     nitroActive = bool
 end)
 
-RegisterNetEvent('hud:client:UpdateHarness', function(harnessHp)
+RegisterNetEvent("hud:client:UpdateHarness", function(harnessHp)
     hp = harnessHp
 end)
 
@@ -681,7 +681,7 @@ RegisterNetEvent("qb-admin:client:ToggleDevmode", function()
     dev = not dev
 end)
 
-RegisterNetEvent('hud:client:UpdateUISettings', function(data)
+RegisterNetEvent("hud:client:UpdateUISettings", function(data)
     UIConfig = data
     sendUIUpdateMessage(data)
 end)
@@ -695,7 +695,7 @@ end)
 --      progressValue: number(0 - 100) - current progress of buff shown on icon
 --      progressColor: string (hex #ffffff) - progress color on icon
 --  }
-RegisterNetEvent('hud:client:BuffEffect', function(data)
+RegisterNetEvent("hud:client:BuffEffect", function(data)
     if data.progressColor ~= nil then
         SendNUIMessage({
             action = "externalstatus",
@@ -726,7 +726,7 @@ RegisterNetEvent('hud:client:BuffEffect', function(data)
     end
 end)
 
-RegisterNetEvent('hud:client:EnhancementEffect', function(data)
+RegisterNetEvent("hud:client:EnhancementEffect", function(data)
     if data.iconColor ~= nil then
         SendNUIMessage({
             action = "externalstatus",
@@ -747,7 +747,7 @@ RegisterNetEvent('hud:client:EnhancementEffect', function(data)
     end
 end)
 
-RegisterCommand('+engine', function()
+RegisterCommand("+engine", function()
     local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
     if vehicle == 0 or GetPedInVehicleSeat(vehicle, -1) ~= PlayerPedId() then return end
     if GetIsVehicleEngineRunning(vehicle) then
@@ -758,7 +758,7 @@ RegisterCommand('+engine', function()
     SetVehicleEngineOn(vehicle, not GetIsVehicleEngineRunning(vehicle), false, true)
 end, false)
 
-RegisterKeyMapping('+engine', Lang:t('info.toggle_engine'), 'keyboard', 'G')
+RegisterKeyMapping("+engine", Lang:t("info.toggle_engine"), "keyboard", "G")
 
 local function IsWhitelistedWeaponArmed(weapon)
     if weapon then
@@ -774,11 +774,11 @@ end
 local prevPlayerStats = { nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil }
 
 local function updateShowPlayerHud(show)
-    if prevPlayerStats['show'] ~= show then
-        prevPlayerStats['show'] = show
+    if prevPlayerStats["show"] ~= show then
+        prevPlayerStats["show"] = show
         SendNUIMessage({
-            action = 'hudtick',
-            topic = 'display',
+            action = "hudtick",
+            topic = "display",
             show = show
         })
     end
@@ -796,8 +796,8 @@ local function updatePlayerHud(data)
         -- Since we found updated data, replace player cache with data
         prevPlayerStats = data
         SendNUIMessage({
-            action = 'hudtick',
-            topic = 'status',
+            action = "hudtick",
+            topic = "status",
             show = data[1],
             health = data[2],
             playerDead = data[3],
@@ -843,8 +843,8 @@ local function updateShowVehicleHud(show)
         prevVehicleStats[1] = show
         prevVehicleStats[3] = false
         SendNUIMessage({
-            action = 'car',
-            topic = 'display',
+            action = "car",
+            topic = "display",
             show = false,
             seatbelt = false,
         })
@@ -862,8 +862,8 @@ local function updateVehicleHud(data)
     prevVehicleStats = data
     if shouldUpdate then
         SendNUIMessage({
-            action = 'car',
-            topic = 'status',
+            action = "car",
+            topic = "status",
             show = data[1],
             isPaused = data[2],
             seatbelt = data[3],
@@ -929,8 +929,8 @@ CreateThread(function()
             -- Voice setup
             local talking = NetworkIsPlayerTalking(playerId)
             local voice = 0
-            if LocalPlayer.state['proximity'] then
-                voice = LocalPlayer.state['proximity'].distance
+            if LocalPlayer.state["proximity"] then
+                voice = LocalPlayer.state["proximity"].distance
                 -- Player enters server with Voice Chat off, will not have a distance (nil)
                 if voice == nil then
                     voice = 0
@@ -953,7 +953,7 @@ CreateThread(function()
                     hunger,
                     stress,
                     voice,
-                    LocalPlayer.state['radioChannel'],
+                    LocalPlayer.state["radioChannel"],
                     radioTalking,
                     talking,
                     armed,
@@ -994,7 +994,7 @@ CreateThread(function()
                     hunger,
                     stress,
                     voice,
-                    LocalPlayer.state['radioChannel'],
+                    LocalPlayer.state["radioChannel"],
                     radioTalking,
                     talking,
                     armed,
@@ -1078,28 +1078,28 @@ end)
 
 -- Money HUD
 
-RegisterNetEvent('hud:client:ShowAccounts', function(type, amount)
-    if type == 'cash' then
+RegisterNetEvent("hud:client:ShowAccounts", function(type, amount)
+    if type == "cash" then
         SendNUIMessage({
-            action = 'show',
-            type = 'cash',
+            action = "show",
+            type = "cash",
             cash = amount
         })
     else
         SendNUIMessage({
-            action = 'show',
-            type = 'bank',
+            action = "show",
+            type = "bank",
             bank = amount
         })
     end
 end)
 
-RegisterNetEvent('hud:client:OnMoneyChange', function(type, amount, isMinus)
-    cashAmount = PlayerData.money['cash']
-    bankAmount = PlayerData.money['bank']
-    if type == 'cash' and amount == 0 then return end
+RegisterNetEvent("hud:client:OnMoneyChange", function(type, amount, isMinus)
+    cashAmount = PlayerData.money["cash"]
+    bankAmount = PlayerData.money["bank"]
+    if type == "cash" and amount == 0 then return end
     SendNUIMessage({
-        action = 'updatemoney',
+        action = "updatemoney",
         cash = cashAmount,
         bank = bankAmount,
         amount = amount,
@@ -1138,7 +1138,7 @@ CreateThread(function() -- Speeding
                 local vehClass = GetVehicleClass(GetVehiclePedIsIn(ped, false))
                 if Config.VehClassStress[tostring(vehClass)] then
                     if speed >= stressSpeed then
-                        TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+                        TriggerServerEvent("hud:server:GainStress", math.random(1, 3))
                     end
                 end
             end
@@ -1166,7 +1166,7 @@ CreateThread(function() -- Shooting
             if weapon ~= `WEAPON_UNARMED` then
                 if IsPedShooting(ped) and not IsWhitelistedWeaponStress(weapon) then
                     if math.random() < config.StressChance then
-                        TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+                        TriggerServerEvent("hud:server:GainStress", math.random(1, 3))
                     end
                     Wait(100)
                 else
@@ -1184,7 +1184,7 @@ end)
 -- Stress Screen Effects
 
 local function GetBlurIntensity(stresslevel)
-    for k, v in pairs(config.Intensity['blur']) do
+    for k, v in pairs(config.Intensity["blur"]) do
         if stresslevel >= v.min and stresslevel <= v.max then
             return v.intensity
         end
@@ -1291,8 +1291,8 @@ local function updateBaseplateHud(data)
     prevBaseplateStats = data
     if shouldUpdate then
         SendNUIMessage({
-            action = 'baseplate',
-            topic = 'compassupdate',
+            action = "baseplate",
+            topic = "compassupdate",
             show = data[1],
             street1 = data[2],
             street2 = data[3],
@@ -1337,8 +1337,8 @@ CreateThread(function()
                 heading = tostring(round(360.0 - GetEntityHeading(player)))
             end
 
-            if heading == '360' then
-                heading = '0'
+            if heading == "360" then
+                heading = "0"
             end
 
             local playerInVehcile = IsPedInAnyVehicle(player, false)
@@ -1347,7 +1347,7 @@ CreateThread(function()
                 if playerInVehcile then
                     local crossroads = getCrossroads(player)
                     SendNUIMessage({
-                        action = 'update',
+                        action = "update",
                         value = heading
                     })
                     updateBaseplateHud({
@@ -1363,12 +1363,12 @@ CreateThread(function()
                 else
                     if not Menu.isOutCompassChecked then
                         SendNUIMessage({
-                            action = 'update',
+                            action = "update",
                             value = heading
                         })
                         SendNUIMessage({
-                            action = 'baseplate',
-                            topic = 'opencompass',
+                            action = "baseplate",
+                            topic = "opencompass",
                             show = true,
                             showCompass = true,
                         })
@@ -1376,8 +1376,8 @@ CreateThread(function()
                         prevBaseplateStats[4] = true
                     else
                         SendNUIMessage({
-                            action = 'baseplate',
-                            topic = 'closecompass',
+                            action = "baseplate",
+                            topic = "closecompass",
                             show = false,
                         })
                         prevBaseplateStats[1] = false
@@ -1389,15 +1389,15 @@ CreateThread(function()
             if lastIsOutCompassCheck ~= Menu.isOutCompassChecked and not IsPedInAnyVehicle(player, false) then
                 if not Menu.isOutCompassChecked then
                     SendNUIMessage({
-                        action = 'baseplate',
-                        topic = 'opencompass',
+                        action = "baseplate",
+                        topic = "opencompass",
                         show = true,
                         showCompass = true,
                     })
                 else
                     SendNUIMessage({
-                        action = 'baseplate',
-                        topic = 'closecompass',
+                        action = "baseplate",
+                        topic = "closecompass",
                         show = false,
                     })
                 end
