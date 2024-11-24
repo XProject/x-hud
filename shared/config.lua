@@ -11,12 +11,19 @@ Config.MinimumStress = 50          -- Minimum Stress Level For Screen Shaking
 Config.MinimumSpeedUnbuckled = 50  -- Going Over This Speed Will Cause Stress
 Config.MinimumSpeed = 100          -- Going Over This Speed Will Cause Stress
 Config.DisablePoliceStress = false -- Default: false, If true will disable stress for people with the police job
-Config.FuelScript = "ox_fuel"      -- "ox_fuel" or "LegcyFuel" or "lj-fuel"
-Config.LowFuel = 20                -- minimum fuel level to trigger the low fuel alert to the pasengers which repeats every 1 minute until empty or refuel
 
--- Admin only to change hud icons/shapes
-Config.AdminRank = "admin"
-Config.AdminOnly = false
+-- vehicle
+Config.EnableEngineToggle = true -- whether this script should handle vehicle engine on/off (this is required to be "true" if you want Config.ToggleEngineKey to work)
+Config.ToggleEngineKey = "G"     -- https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/ (it requires Config.EnableEngineToggle to be "true")
+
+-- fuel
+Config.FuelScript = "ox_fuel"    -- "ox_fuel" or "LegcyFuel" or "lj-fuel"
+Config.EnableLowFuelAlert = true -- whether this script should handle and send alert on low vehicle fuel (this is required to be "true" if you want Config.LowFuel to work)
+Config.LowFuel = 20              -- minimum fuel level to trigger the low fuel alert to the pasengers which repeats every 1 minute until empty or refuel (it requires Config.EnableLowFuelAlert to be "true")
+
+-- admin
+Config.AdminOnly = false   -- whether admins only are able to change the hud's icons/shapes for all players
+Config.AdminRank = "admin" -- the minimum admin rank that are able to change the hud's icons/shapes for all players (it requires Config.AdminOnly to be "true")
 
 -- Stress
 Config.WhitelistedWeaponArmed = { -- weapons specifically whitelisted to not show armed mode

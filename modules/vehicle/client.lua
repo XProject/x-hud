@@ -60,7 +60,7 @@ local vehiclePedIsIn = false
 local isLowFuelAlertThreadActive = false
 
 local function lowFuelAlertThread()
-    if isLowFuelAlertThreadActive then return end
+    if isLowFuelAlertThreadActive or not vehiclePedIsIn then return end
 
     isLowFuelAlertThreadActive = true
 
@@ -90,9 +90,29 @@ end
 AddEventHandler("ox_lib:cache:vehicle", function(value)
     vehiclePedIsIn = value
 
-    if value then
+    if Config.EnableLowFuelAlert then
         lowFuelAlertThread()
     end
 end)
+
+if Config.EnableEngineToggle then
+    local function toggleEngine()
+        if not vehiclePedIsIn or GetPedInVehicleSeat(vehiclePedIsIn, -1) ~= cache.ped then return end
+
+        local isVehicleEngineRunning = GetIsVehicleEngineRunning(vehiclePedIsIn)
+
+        SetVehicleEngineOn(vehiclePedIsIn, not isVehicleEngineRunning, false, true)
+        utils.showNotification(isVehicleEngineRunning and locale("engine_off") or locale("engine_on"))
+    end
+
+    lib.addKeybind({
+        name = "toggle_engine",
+        description = locale("toggle_engine"),
+        defaultKey = Config.ToggleEngineKey,
+        defaultMapper = "keyboard",
+        onPressed = toggleEngine,
+    })
+end
+
 
 return vehicle
