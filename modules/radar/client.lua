@@ -18,8 +18,8 @@ end
 local defaultBarHeight = 0.0
 local cinematicBarHeight = 0.2
 local barHeight = defaultBarHeight
-local isCinematicModeActive = false
 local isCinematicThreadActive = false
+menuConfig:set("isCineamticModeChecked", false) -- default value
 
 local function drawBlackBars()
     DrawRect(0.0, 0.0, 2.0, barHeight, 0, 0, 0, 255)
@@ -27,12 +27,12 @@ local function drawBlackBars()
 end
 
 local function cinematicModeThread()
-    if isCinematicThreadActive or not isCinematicModeActive then return end
+    if isCinematicThreadActive or not menuConfig:get("isCineamticModeChecked") then return end
 
     isCinematicThreadActive = true
 
     CreateThread(function()
-        while isCinematicModeActive do
+        while menuConfig:get("isCineamticModeChecked") do
             Wait(0)
             drawBlackBars()
             radar.toggleMinimap(false)
@@ -50,14 +50,14 @@ function radar.cinematicMode(state)
 
     if state then
         barHeight = cinematicBarHeight
-        isCinematicModeActive = true
+        menuConfig:set("isCineamticModeChecked", true)
 
         if menuConfig:get("isCinematicNotifChecked") then
             utils.showNotification(locale("cinematic_on"))
         end
     else
         barHeight = defaultBarHeight
-        isCinematicModeActive = false
+        menuConfig:set("isCineamticModeChecked", false)
 
         if menuConfig:get("isCinematicNotifChecked") then
             utils.showNotification(locale("cinematic_off"))

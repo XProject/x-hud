@@ -125,7 +125,7 @@ AddEventHandler("pma-voice:radioActive", function(isRadioTalking)
     radioTalking = isRadioTalking
 end)
 
-RegisterCommand("hud", function()
+local function hudSettingsMenu()
     if isMenuShowing then return end
 
     isMenuShowing = true
@@ -134,7 +134,15 @@ RegisterCommand("hud", function()
 
     SetNuiFocus(true, true)
     SendNUIMessage({ action = "open" })
-end, false)
+end
+
+lib.addKeybind({
+    name = "hud_menu",
+    description = locale("open_menu"),
+    defaultKey = Config.OpenMenu,
+    defaultMapper = "keyboard",
+    onPressed = hudSettingsMenu,
+})
 
 utils.NuiCallback("closeMenu", function()
     TriggerEvent("hud:client:playCloseMenuSounds")
@@ -142,8 +150,6 @@ utils.NuiCallback("closeMenu", function()
     isMenuShowing = false
     SetNuiFocus(false, false)
 end)
-
-RegisterKeyMapping("hud", locale("open_menu"), "keyboard", Config.OpenMenu)
 
 local function restartHud()
     TriggerEvent("hud:client:playResetHudSounds")
@@ -212,34 +218,14 @@ RegisterNetEvent("hud:client:resetStorage", function()
     loadRadar()
 end)
 
-RegisterNUICallback("saveUISettings", function(data, cb)
-    cb({})
-    Wait(50)
+utils.NuiCallback("saveUISettings", function(data)
     TriggerEvent("hud:client:playHudChecklistSound")
     TriggerServerEvent("hud:server:saveUIData", data)
 end)
 
-RegisterNUICallback("showOutCompass", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isOutCompassChecked = true
-    else
-        Menu.isOutCompassChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
 
-RegisterNUICallback("showFollowCompass", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isCompassFollowChecked = true
-    else
-        Menu.isCompassFollowChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
+
+
 
 RegisterNUICallback("showFuelAlert", function(data, cb)
     cb({})
@@ -259,80 +245,31 @@ RegisterNUICallback("dynamicChange", function(_, cb)
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
--- Compass
-RegisterNUICallback("showCompassBase", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isCompassShowChecked = true
-    else
-        Menu.isCompassShowChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
-RegisterNUICallback("showStreetsNames", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isShowStreetsChecked = true
-    else
-        Menu.isShowStreetsChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
-RegisterNUICallback("showPointerIndex", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isPointerShowChecked = true
-    else
-        Menu.isPointerShowChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
-RegisterNUICallback("showDegreesNum", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isDegreesShowChecked = true
-    else
-        Menu.isDegreesShowChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
-RegisterNUICallback("changeCompassFPS", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.fps == "optimized" then
-        Menu.isChangeCompassFPSChecked = true
-    else
-        Menu.isChangeCompassFPSChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
-RegisterNUICallback("updateMenuSettingsToClient", function(data, cb)
+utils.NuiCallback("updateMenuSettingsToClient", function(data)
+    -- radar
     menuConfig:set("isOutMapChecked", data.isOutMapChecked)
-    Menu.isOutCompassChecked = data.isOutCompassChecked
-    Menu.isCompassFollowChecked = data.isCompassFollowChecked
-    menuConfig:set("isOpenMenuSoundsChecked", data.isOpenMenuSoundsChecked)
-    menuConfig:set("isResetSoundsChecked", data.isResetSoundsChecked)
-    menuConfig:set("isListSoundsChecked", data.isListSoundsChecked)
     menuConfig:set("isMapNotifChecked", data.isMapNotifyChecked)
-    Menu.isLowFuelChecked = data.isLowFuelAlertChecked
-    menuConfig:set("isCinematicNotifChecked", data.isCinematicNotifyChecked)
     menuConfig:set("isMapEnabledChecked", data.isMapEnabledChecked)
+    menuConfig:set("isCineamticModeChecked", data.isCineamticModeChecked)
     menuConfig:set("isToggleMapShapeChecked", data.isToggleMapShapeChecked)
+    menuConfig:set("isCinematicNotifChecked", data.isCinematicNotifyChecked)
     menuConfig:set("isToggleMapBordersChecked", data.isToggleMapBordersChecked)
-    Menu.isCompassShowChecked = data.isShowCompassChecked
-    Menu.isShowStreetsChecked = data.isShowStreetsChecked
-    Menu.isPointerShowChecked = data.isPointerShowChecked
     radar.cinematicMode(data.isCineamticModeChecked)
-    cb({})
+
+    -- sounds
+    menuConfig:set("isListSoundsChecked", data.isListSoundsChecked)
+    menuConfig:set("isOutCompassChecked", data.isOutCompassChecked)
+    menuConfig:set("isResetSoundsChecked", data.isResetSoundsChecked)
+    menuConfig:set("isOpenMenuSoundsChecked", data.isOpenMenuSoundsChecked)
+
+    -- compass
+    menuConfig:set("isCompassShowChecked", data.isShowCompassChecked)
+    menuConfig:set("isShowStreetsChecked", data.isShowStreetsChecked)
+    menuConfig:set("isCompassFollowChecked", data.isCompassFollowChecked)
+    menuConfig:set("isPointerShowChecked", data.isPointerShowChecked)
+
+    -- fuel
+    Menu.isLowFuelChecked = data.isLowFuelAlertChecked
 end)
 
 RegisterNetEvent("hud:client:EngineHealth", function(newEngine)
@@ -673,7 +610,7 @@ CreateThread(function()
                     hp,
                     math.ceil(GetEntitySpeed(vehicle) * speedMultiplier),
                     -1,
-                    Menu.isCineamticModeChecked,
+                    menuConfig:get("isCineamticModeChecked"),
                     dev,
                 })
             end
@@ -714,7 +651,7 @@ CreateThread(function()
                     hp,
                     math.ceil(GetEntitySpeed(vehicle) * speedMultiplier),
                     (GetVehicleEngineHealth(vehicle) / 10),
-                    Menu.isCineamticModeChecked,
+                    menuConfig:get("isCineamticModeChecked"),
                     dev,
                 })
 
@@ -1008,7 +945,7 @@ end
 
 CreateThread(function()
     local heading, lastHeading = "0", "1"
-    local lastIsOutCompassCheck = Menu.isOutCompassChecked
+    local lastIsOutCompassCheck = menuConfig:get("isOutCompassChecked")
     local lastInVehicle = false
     while true do
         if LocalPlayer.state.isLoggedIn then
@@ -1017,7 +954,7 @@ CreateThread(function()
             local player = PlayerPedId()
             local camRot = GetGameplayCamRot(0)
 
-            if Menu.isCompassFollowChecked then
+            if menuConfig:get("isCompassFollowChecked") then
                 heading = tostring(round(360.0 - ((camRot.z + 360.0) % 360.0)))
             else
                 heading = tostring(round(360.0 - GetEntityHeading(player)))
@@ -1040,14 +977,14 @@ CreateThread(function()
                         show,
                         crossroads[1],
                         crossroads[2],
-                        Menu.isCompassShowChecked,
-                        Menu.isShowStreetsChecked,
-                        Menu.isPointerShowChecked,
-                        Menu.isDegreesShowChecked,
+                        menuConfig:get("isCompassShowChecked"),
+                        menuConfig:get("isShowStreetsChecked"),
+                        menuConfig:get("isPointerShowChecked"),
+                        menuConfig:get("isDegreesShowChecked"),
                     })
                     lastInVehicle = true
                 else
-                    if not Menu.isOutCompassChecked then
+                    if not menuConfig:get("isOutCompassChecked") then
                         SendNUIMessage({
                             action = "update",
                             value = heading
@@ -1072,8 +1009,8 @@ CreateThread(function()
                 end
             end
             lastHeading = heading
-            if lastIsOutCompassCheck ~= Menu.isOutCompassChecked and not IsPedInAnyVehicle(player, false) then
-                if not Menu.isOutCompassChecked then
+            if lastIsOutCompassCheck ~= menuConfig:get("isOutCompassChecked") and not IsPedInAnyVehicle(player, false) then
+                if not menuConfig:get("isOutCompassChecked") then
                     SendNUIMessage({
                         action = "baseplate",
                         topic = "opencompass",
@@ -1087,7 +1024,7 @@ CreateThread(function()
                         show = false,
                     })
                 end
-                lastIsOutCompassCheck = Menu.isOutCompassChecked
+                lastIsOutCompassCheck = menuConfig:get("isOutCompassChecked")
             end
         else
             Wait(1000)

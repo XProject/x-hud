@@ -1,3 +1,6 @@
+local utils = require("modules.utility.client")
+local menuConfig = require("modules.menuConfig.client")
+
 -- Open/Close sound of the hud menu
 
 menuConfig:set("isOpenMenuSoundsChecked", true) -- default value

@@ -1,15 +1,7 @@
 local menuConfig = {
-    -- isOutCompassChecked = true,
-    -- isCompassFollowChecked = true,
     -- isLowFuelChecked = true,
     -- isDynamicEngineChecked = true,
     -- isDynamicNitroChecked = true,
-    -- isChangeCompassFPSChecked = true,
-    -- isCompassShowChecked = true,
-    -- isShowStreetsChecked = true,
-    -- isPointerShowChecked = true,
-    -- isDegreesShowChecked = true,
-    -- isCineamticModeChecked = false,
 }
 menuConfig.__index = menuConfig
 
