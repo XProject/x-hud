@@ -1,3 +1,5 @@
+lib.locale()
+
 Config = {}
 
 Config.Framework = "qb"            -- "esx" or "qb" "ox"
@@ -9,7 +11,7 @@ Config.MinimumStress = 50          -- Minimum Stress Level For Screen Shaking
 Config.MinimumSpeedUnbuckled = 50  -- Going Over This Speed Will Cause Stress
 Config.MinimumSpeed = 100          -- Going Over This Speed Will Cause Stress
 Config.DisablePoliceStress = false -- Default: false, If true will disable stress for people with the police job
-Config.FuelScript = "LegacyFuel"   -- change to lj-fuel if you use lj-fuel or something else if you use any other LegcyFuel compatible script
+Config.FuelScript = "ox_fuel"      -- "ox_fuel" or "LegcyFuel" or "lj-fuel"
 Config.LowFuel = 20                -- minimum fuel level to trigger the low fuel alert to the pasengers which repeats every 1 minute until empty or refuel
 
 -- Admin only to change hud icons/shapes

@@ -4,7 +4,7 @@ local menuConfig = {
 }
 menuConfig.__index = menuConfig
 
-setmetatable(__index, {
+setmetatable(menuConfig, {
     __index = __index,
     __metatable = false
 })

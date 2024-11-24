@@ -1,9 +1,7 @@
 local QBCore = exports["qb-core"]:GetCoreObject()
 local serverId = GetPlayerServerId(PlayerId())
-local PlayerData = QBCore.Functions.GetPlayerData()
-local config = Config
 local UIConfig = UIConfig
-local speedMultiplier = config.UseMPH and 2.23694 or 3.6
+local speedMultiplier = Config.UseMPH and 2.23694 or 3.6
 local seatbeltOn = false
 local cruiseOn = false
 local showAltitude = false
@@ -25,11 +23,10 @@ local isMenuShowing = false
 local radioTalking = false
 
 
-lib.locale()
-lib.load("modules.sound.client")
+local sound = require("modules.sound.client")
 local radar = require("modules.radar.client")
 local utils = require("modules.utility.client")
-local framework = lib.load("modules.bridge.main")
+local framework = require("modules.bridge.main")
 local vehicle = require("modules.vehicle.client")
 local menuConfig = require("modules.menuConfig.client")
 
@@ -398,7 +395,7 @@ RegisterKeyMapping("+engine", locale("toggle_engine"), "keyboard", "G")
 
 local function IsWhitelistedWeaponArmed(weapon)
     if weapon then
-        for _, v in pairs(config.WhitelistedWeaponArmed) do
+        for _, v in pairs(Config.WhitelistedWeaponArmed) do
             if weapon == v then
                 return true
             end
@@ -563,9 +560,7 @@ CreateThread(function()
                 show = false
             end
 
-            local vehicle = GetVehiclePedIsIn(player, false)
-
-            if not (IsPedInAnyVehicle(player, false) and not IsThisModelABicycle(vehicle)) then
+            if not (cache.vehicle and not IsThisModelABicycle(cache.vehicle)) then
                 updatePlayerHud({
                     show,
                     GetEntityHealth(player) - 100,
@@ -586,7 +581,7 @@ CreateThread(function()
                     nitroActive,
                     harness,
                     hp,
-                    math.ceil(GetEntitySpeed(vehicle) * speedMultiplier),
+                    math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier),
                     -1,
                     menuConfig:get("isCineamticModeChecked"),
                     dev,
@@ -600,7 +595,7 @@ CreateThread(function()
                 showSeatbelt = false
             end
 
-            if IsPedInAnyVehicle(player, false) and not IsThisModelABicycle(vehicle) then
+            if cache.vehicle and not IsThisModelABicycle(cache.vehicle) then
                 if not wasInVehicle then
                     radar.toggleMinimap(menuConfig:get("isMapEnabledChecked"))
                 end
@@ -627,8 +622,8 @@ CreateThread(function()
                     nitroActive,
                     harness,
                     hp,
-                    math.ceil(GetEntitySpeed(vehicle) * speedMultiplier),
-                    (GetVehicleEngineHealth(vehicle) / 10),
+                    math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier),
+                    (GetVehicleEngineHealth(cache.vehicle) / 10),
                     menuConfig:get("isCineamticModeChecked"),
                     dev,
                 })
@@ -637,8 +632,8 @@ CreateThread(function()
                     show,
                     IsPauseMenuActive(),
                     seatbeltOn,
-                    math.ceil(GetEntitySpeed(vehicle) * speedMultiplier),
-                    vehicle.getFuelLevel(vehicle),
+                    math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier),
+                    vehicle.getFuelLevel(cache.vehicle),
                     math.ceil(GetEntityCoords(player).z * 0.5),
                     showAltitude,
                     showSeatbelt,
@@ -717,6 +712,7 @@ CreateThread(function() -- Speeding
             local ped = PlayerPedId()
             if IsPedInAnyVehicle(ped, false) then
                 local speed = GetEntitySpeed(GetVehiclePedIsIn(ped, false)) * speedMultiplier
+                local stressSpeed = seatbeltOn and Config.MinimumSpeed or Config.MinimumSpeedUnbuckled
                 local vehClass = GetVehicleClass(GetVehiclePedIsIn(ped, false))
                 if Config.VehClassStress[tostring(vehClass)] then
                     if speed >= stressSpeed then
@@ -731,7 +727,7 @@ end)
 
 local function IsWhitelistedWeaponStress(weapon)
     if weapon then
-        for _, v in pairs(config.WhitelistedWeaponStress) do
+        for _, v in pairs(Config.WhitelistedWeaponStress) do
             if weapon == v then
                 return true
             end
@@ -747,7 +743,7 @@ CreateThread(function() -- Shooting
             local weapon = GetSelectedPedWeapon(ped)
             if weapon ~= `WEAPON_UNARMED` then
                 if IsPedShooting(ped) and not IsWhitelistedWeaponStress(weapon) then
-                    if math.random() < config.StressChance then
+                    if math.random() < Config.StressChance then
                         TriggerServerEvent("hud:server:GainStress", math.random(1, 3))
                     end
                     Wait(100)
@@ -766,7 +762,7 @@ end)
 -- Stress Screen Effects
 
 local function GetBlurIntensity(stresslevel)
-    for k, v in pairs(config.Intensity["blur"]) do
+    for k, v in pairs(Config.Intensity["blur"]) do
         if stresslevel >= v.min and stresslevel <= v.max then
             return v.intensity
         end
@@ -775,7 +771,7 @@ local function GetBlurIntensity(stresslevel)
 end
 
 local function GetEffectInterval(stresslevel)
-    for k, v in pairs(config.EffectInterval) do
+    for k, v in pairs(Config.EffectInterval) do
         if stresslevel >= v.min and stresslevel <= v.max then
             return v.timeout
         end
@@ -810,7 +806,7 @@ CreateThread(function()
                     Wait(BlurIntensity)
                     TriggerScreenblurFadeOut(1000.0)
                 end
-            elseif stress >= config.MinimumStress then
+            elseif stress >= Config.MinimumStress then
                 local BlurIntensity = GetBlurIntensity(stress)
                 TriggerScreenblurFadeIn(1000.0)
                 Wait(BlurIntensity)

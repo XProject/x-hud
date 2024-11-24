@@ -8,20 +8,22 @@ version "2.1.2"
 description "HUD"
 
 shared_scripts {
-	"@ox_lib/init.lua",
-	"shared/*.lua"
+    "@ox_lib/init.lua",
+    "shared/*.lua"
 }
 
 server_scripts {
-	"server/*.lua"
+    "server/*.lua"
 }
 
 client_scripts {
-	"client/*.lua",
+    "client/*.lua",
 }
 
 ui_page "html/index.html"
 
 files {
-	"html/*",
+    "html/*",
+    "locales/*.json",
+    "modules/**/*.lua"
 }
