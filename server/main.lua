@@ -1,6 +1,8 @@
 local QBCore = exports["qb-core"]:GetCoreObject()
 local ResetStress = false
 
+local framework = lib.load("modules.bridge.main")
+
 QBCore.Commands.Add("cash", Lang:t("info.check_cash_balance"), {}, false, function(source, args)
     local Player = QBCore.Functions.GetPlayer(source)
     local cashamount = Player.PlayerData.money.cash
@@ -114,7 +116,7 @@ RegisterNetEvent("hud:server:saveUIData", function(data)
             local v = data.icons[iconName][iconValueName]
             uiConfigData.icons[iconName][iconValueName] = v
             if type(v) == "string" then
-                str = ("\n    %s = "%s","):format(iconValueName, v)
+                str = ("\n    %s = \"%s\","):format(iconValueName, v)
             else
                 str = ("\n    %s = %s,"):format(iconValueName, v)
             end
@@ -130,7 +132,7 @@ RegisterNetEvent("hud:server:saveUIData", function(data)
     for layoutName, layoutVal in pairs(data.layout) do
         local str
         if type(layoutVal) == "string" then
-            str = ("\n    %s = "%s","):format(layoutName, layoutVal)
+            str = ("\n    %s = \"%s\","):format(layoutName, layoutVal)
         else
             str = ("\n    %s = %s,"):format(layoutName, layoutVal)
         end
@@ -178,7 +180,7 @@ RegisterNetEvent("hud:server:saveUIData", function(data)
             for _, CEKey in ipairs(colorEffectkeys) do
                 local str
                 if type(colorEffect[CEKey]) == "string" then
-                    str = ("\n            %s = "%s","):format(CEKey, colorEffect[CEKey])
+                    str = ("\n            %s = \"%s\","):format(CEKey, colorEffect[CEKey])
                 else
                     str = ("\n            %s = %s,"):format(CEKey, colorEffect[CEKey])
                 end
@@ -198,15 +200,6 @@ RegisterNetEvent("hud:server:saveUIData", function(data)
     TriggerClientEvent("hud:client:UpdateUISettings", -1, uiConfigData)
 end)
 
-QBCore.Functions.CreateCallback("hud:server:getMenu", function(source, cb)
-    cb(Config.Menu)
-end)
-
-QBCore.Functions.CreateCallback("hud:server:getRank", function(source, cb)
-    local src = source
-    if QBCore.Functions.HasPermission(src, "admin") or IsPlayerAceAllowed(src, "command") then
-        cb(true)
-    else
-        cb(false)
-    end
+lib.callback.register("hud:server:getRank", function(source)
+    return framework.hasAdminPermission()
 end)

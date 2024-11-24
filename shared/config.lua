@@ -1,5 +1,7 @@
 Config = {}
 
+Config.Framework = "esx"           -- "esx" or "qb" "ox"
+
 Config.OpenMenu = "I"              -- https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/
 Config.StressChance = 0.1          -- Default: 10% -- Percentage Stress Chance When Shooting (0-1)
 Config.UseMPH = true               -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
@@ -10,6 +12,7 @@ Config.DisablePoliceStress = false -- Default: false, If true will disable stres
 Config.FuelScript = "LegacyFuel"   -- change to lj-fuel if you use lj-fuel or something else if you use any other LegcyFuel compatible script
 
 -- Admin only to change hud icons/shapes
+Config.AdminRank = "admin"
 Config.AdminOnly = false
 
 -- Stress

@@ -1,5 +1,5 @@
 local radar = {}
-local utils = require("shared.utils")
+local utils = require("modules.utility.client")
 local menuConfig = require("modules.menuConfig.client")
 
 menuConfig:set("isCinematicNotifChecked", true) -- default value
@@ -96,7 +96,10 @@ end)
 local squareBorder = false
 local circleBorder = false
 
+---@return boolean
 function radar.loadMap()
+    local loaded = false
+
     -- Credit to Dalrae for the solve.
     local defaultAspectRatio = 1920 / 1080 -- Don't change this.
     local resolutionX, resolutionY = GetActiveScreenResolution()
@@ -148,6 +151,8 @@ function radar.loadMap()
         if menuConfig:get("isMapNotifChecked") then
             utils.showNotification(locale("loaded_square_map"))
         end
+
+        loaded = true
     elseif menuConfig:get("isToggleMapShapeChecked") == "circle" then
         while not HasStreamedTextureDictLoaded("circlemap") do
             RequestStreamedTextureDict("circlemap", false)
@@ -189,7 +194,11 @@ function radar.loadMap()
         if menuConfig:get("isMapNotifChecked") then
             utils.showNotification(locale("loaded_circle_map"))
         end
+
+        loaded = true
     end
+
+    return loaded
 end
 
 menuConfig:set("isMapEnabledChecked", false) -- default value
