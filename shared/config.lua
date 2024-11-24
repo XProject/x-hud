@@ -1,6 +1,6 @@
 Config = {}
 
-Config.Framework = "esx"           -- "esx" or "qb" "ox"
+Config.Framework = "qb"            -- "esx" or "qb" "ox"
 
 Config.OpenMenu = "I"              -- https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/
 Config.StressChance = 0.1          -- Default: 10% -- Percentage Stress Chance When Shooting (0-1)
