@@ -19,8 +19,25 @@ RegisterNetEvent("QBCore:Client:OnPlayerUnload", function()
     framework.playerUnloaded()
 end)
 
-RegisterNetEvent("QBCore:Player:SetPlayerData", function(val)
-    playerData = val
+RegisterNetEvent("QBCore:Player:SetPlayerData", function(value)
+    playerData = value
+end)
+
+---@param type string
+---@param amount number
+---@param action "add" | "remove" | "set"
+RegisterNetEvent("QBCore:Client:OnMoneyChange", function(type, amount, action)
+    if amount == 0 then return end
+
+    local isMinus = false
+    local cashAmount = playerData.money["cash"]
+    local bankAmount = playerData.money["bank"]
+
+    if action == "remove" then
+        isMinus = true
+    end
+
+    exports[cache.resource]:showMoney(type, amount, cashAmount, bankAmount, isMinus)
 end)
 
 ---@return boolean

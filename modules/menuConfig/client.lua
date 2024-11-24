@@ -1,5 +1,4 @@
 local menuConfig = {
-    -- isLowFuelChecked = true,
     -- isDynamicEngineChecked = true,
     -- isDynamicNitroChecked = true,
 }

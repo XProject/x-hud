@@ -201,5 +201,5 @@ RegisterNetEvent("hud:server:saveUIData", function(data)
 end)
 
 lib.callback.register("hud:server:getRank", function(source)
-    return framework.hasAdminPermission()
+    return framework.hasAdminPermission(source, Config.AdminRank)
 end)

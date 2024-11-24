@@ -13,15 +13,11 @@ local nos = 0
 local stress = 0
 local hunger = 100
 local thirst = 100
-local cashAmount = 0
-local bankAmount = 0
 local nitroActive = 0
 local harness = false
 local hp = 100
 local armed = false
-local parachute = -1
 local oxygen = 100
-local engine = 0
 local dev = false
 local isAdmin = false
 local playerDead = false
@@ -34,6 +30,7 @@ lib.load("modules.sound.client")
 local radar = require("modules.radar.client")
 local utils = require("modules.utility.client")
 local framework = lib.load("modules.bridge.main")
+local vehicle = require("modules.vehicle.client")
 local menuConfig = require("modules.menuConfig.client")
 
 radar.toggleMinimap(false)
@@ -223,25 +220,7 @@ utils.NuiCallback("saveUISettings", function(data)
     TriggerServerEvent("hud:server:saveUIData", data)
 end)
 
-
-
-
-
-RegisterNUICallback("showFuelAlert", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isLowFuelChecked = true
-    else
-        Menu.isLowFuelChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
--- Status
-RegisterNUICallback("dynamicChange", function(_, cb)
-    cb({})
-    Wait(50)
+utils.NuiCallback("dynamicChange", function()
     TriggerEvent("hud:client:playHudChecklistSound")
 end)
 
@@ -265,19 +244,31 @@ utils.NuiCallback("updateMenuSettingsToClient", function(data)
     -- compass
     menuConfig:set("isCompassShowChecked", data.isShowCompassChecked)
     menuConfig:set("isShowStreetsChecked", data.isShowStreetsChecked)
-    menuConfig:set("isCompassFollowChecked", data.isCompassFollowChecked)
     menuConfig:set("isPointerShowChecked", data.isPointerShowChecked)
+    menuConfig:set("isCompassFollowChecked", data.isCompassFollowChecked)
 
     -- fuel
-    Menu.isLowFuelChecked = data.isLowFuelAlertChecked
-end)
-
-RegisterNetEvent("hud:client:EngineHealth", function(newEngine)
-    engine = newEngine
+    menuConfig:set("isLowFuelChecked", data.isLowFuelAlertChecked)
 end)
 
 RegisterNetEvent("hud:client:ToggleAirHud", function()
     showAltitude = not showAltitude
+end)
+
+---@param moneyType "cash" | "bank"
+---@param moneyAmount number
+---@param cashMoney number
+---@param bankMoney number
+---@param isMinus boolean
+exports("showMoney", function(moneyType, moneyAmount, cashMoney, bankMoney, isMinus)
+    SendNUIMessage({
+        action = "updatemoney",
+        cash = cashMoney,
+        bank = bankMoney,
+        amount = moneyAmount,
+        minus = isMinus,
+        type = moneyType
+    })
 end)
 
 RegisterNetEvent("hud:client:UpdateNeeds", function(newHunger, newThirst) -- Triggered in qb-core
@@ -523,18 +514,6 @@ local function updateVehicleHud(data)
     end
 end
 
-local lastFuelUpdate = 0
-local lastFuelCheck = 0
-
-local function getFuelLevel(vehicle)
-    local updateTick = GetGameTimer()
-    if (updateTick - lastFuelUpdate) > 2000 then
-        lastFuelUpdate = updateTick
-        lastFuelCheck = math.floor(exports[Config.FuelScript]:GetFuel(vehicle))
-    end
-    return lastFuelCheck
-end
-
 -- HUD Update loop
 CreateThread(function()
     local wasInVehicle = false
@@ -558,7 +537,6 @@ CreateThread(function()
             end
 
             playerDead = framework.isPlayerDead()
-            parachute = GetPedParachuteState(player)
 
             -- Stamina
             if not IsEntityInWater(player) then
@@ -660,7 +638,7 @@ CreateThread(function()
                     IsPauseMenuActive(),
                     seatbeltOn,
                     math.ceil(GetEntitySpeed(vehicle) * speedMultiplier),
-                    getFuelLevel(vehicle),
+                    vehicle.getFuelLevel(vehicle),
                     math.ceil(GetEntityCoords(player).z * 0.5),
                     showAltitude,
                     showSeatbelt,
@@ -692,34 +670,7 @@ CreateThread(function()
     end
 end)
 
-function isElectric(vehicle)
-    local noBeeps = false
-    for k, v in pairs(Config.FuelBlacklist) do
-        if GetEntityModel(vehicle) == GetHashKey(v) then
-            noBeeps = true
-        end
-    end
-    return noBeeps
-end
 
--- Low fuel
-CreateThread(function()
-    while true do
-        if LocalPlayer.state.isLoggedIn then
-            local ped = PlayerPedId()
-            if IsPedInAnyVehicle(ped, false) and not IsThisModelABicycle(GetEntityModel(GetVehiclePedIsIn(ped, false))) and not isElectric(GetVehiclePedIsIn(ped, false)) then
-                if exports[Config.FuelScript]:GetFuel(GetVehiclePedIsIn(ped, false)) <= 20 then -- At 20% Fuel Left
-                    if Menu.isLowFuelChecked then
-                        TriggerServerEvent("InteractSound_SV:PlayOnSource", "pager", 0.10)
-                        QBCore.Functions.Notify(locale("low_fuel"), "error")
-                        Wait(60000) -- repeats every 1 min until empty
-                    end
-                end
-            end
-        end
-        Wait(10000)
-    end
-end)
 
 -- Money HUD
 
@@ -737,20 +688,6 @@ RegisterNetEvent("hud:client:ShowAccounts", function(type, amount)
             bank = amount
         })
     end
-end)
-
-RegisterNetEvent("hud:client:OnMoneyChange", function(type, amount, isMinus)
-    cashAmount = PlayerData.money["cash"]
-    bankAmount = PlayerData.money["bank"]
-    if type == "cash" and amount == 0 then return end
-    SendNUIMessage({
-        action = "updatemoney",
-        cash = cashAmount,
-        bank = bankAmount,
-        amount = amount,
-        minus = isMinus,
-        type = type
-    })
 end)
 
 -- Harness Check / Seatbelt Check
