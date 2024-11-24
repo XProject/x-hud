@@ -4,8 +4,6 @@ local UIConfig = UIConfig
 local speedMultiplier = Config.UseMPH and 2.23694 or 3.6
 local seatbeltOn = false
 local cruiseOn = false
-local showAltitude = false
-local showSeatbelt = false
 local next = next
 local nos = 0
 local stress = 0
@@ -14,11 +12,8 @@ local thirst = 100
 local nitroActive = 0
 local harness = false
 local hp = 100
-local armed = false
-local oxygen = 100
 local dev = false
 local isAdmin = false
-local playerDead = false
 local isMenuShowing = false
 local radioTalking = false
 
@@ -152,14 +147,14 @@ local function restartHud()
 
     Wait(1500)
 
-    if cache.vehicle then
-        SendNUIMessage({
-            action = "car",
-            topic = "display",
-            show = false,
-            seatbelt = false,
-        })
+    SendNUIMessage({
+        action = "car",
+        topic = "display",
+        show = false,
+        seatbelt = false,
+    })
 
+    if cache.vehicle then
         Wait(500)
 
         SendNUIMessage({
@@ -248,10 +243,6 @@ utils.NuiCallback("updateMenuSettingsToClient", function(data)
     menuConfig:set("isLowFuelChecked", data.isLowFuelAlertChecked)
 end)
 
-RegisterNetEvent("hud:client:ToggleAirHud", function()
-    showAltitude = not showAltitude
-end)
-
 ---@param moneyType "cash" | "bank"
 ---@param moneyAmount number
 ---@param cashMoney number
@@ -287,10 +278,6 @@ end)
 
 RegisterNetEvent("hud:client:UpdateStress", function(newStress) -- Add this event with adding stress elsewhere
     stress = newStress
-end)
-
-RegisterNetEvent("hud:client:ToggleShowSeatbelt", function()
-    showSeatbelt = not showSeatbelt
 end)
 
 RegisterNetEvent("seatbelt:client:ToggleSeatbelt", function() -- Triggered in smallresources
@@ -445,142 +432,60 @@ local function updatePlayerHud(data)
     end
 end
 
-local prevVehicleStats = {
-    nil, --[1] show,
-    nil, --[2] isPaused,
-    nil, --[3] seatbelt
-    nil, --[4] speed
-    nil, --[5] fuel
-    nil, --[6] altitude
-    nil, --[7] showAltitude
-    nil, --[8] showSeatbelt
-    nil, --[9] showSquareBorder
-    nil  --[10] showCircleBorder
-}
-
-local function updateShowVehicleHud(show)
-    if prevVehicleStats[1] ~= show then
-        prevVehicleStats[1] = show
-        prevVehicleStats[3] = false
-        SendNUIMessage({
-            action = "car",
-            topic = "display",
-            show = false,
-            seatbelt = false,
-        })
-    end
-end
-
-local function updateVehicleHud(data)
-    local shouldUpdate = false
-    for k, v in pairs(data) do
-        if prevVehicleStats[k] ~= v then
-            shouldUpdate = true
-            break
-        end
-    end
-    prevVehicleStats = data
-    if shouldUpdate then
-        SendNUIMessage({
-            action = "car",
-            topic = "status",
-            show = data[1],
-            isPaused = data[2],
-            seatbelt = data[3],
-            speed = data[4],
-            fuel = data[5],
-            altitude = data[6],
-            showAltitude = data[7],
-            showSeatbelt = data[8],
-            showSquareB = data[9],
-            showCircleB = data[10],
-        })
-    end
-end
+local playerState = LocalPlayer.state
 
 -- HUD Update loop
 CreateThread(function()
     local wasInVehicle = false
+
     while true do
-        if LocalPlayer.state.isLoggedIn then
-            Wait(500)
+        if framework.isPlayerLoaded() then
+            local shouldShowHud = not IsPauseMenuActive()
 
-            local show = true
-            local player = PlayerPedId()
-            local playerId = PlayerId()
-            local weapon = GetSelectedPedWeapon(player)
+            if not shouldShowHud then
+                vehicle.hideHud()
+                goto skip
+            end
 
-            -- Player hud
-            if not IsWhitelistedWeaponArmed(weapon) then
+            -- player weapon
+            local isPlayerArmed = false
+
+            if not IsWhitelistedWeaponArmed(cache.weapon) then
                 -- weapon ~= 0 fixes unarmed on Offroad vehicle Blzer Aqua showing armed bug
-                if weapon ~= `WEAPON_UNARMED` and weapon ~= 0 then
-                    armed = true
-                else
-                    armed = false
+                if cache.weapon and cache.weapon ~= `WEAPON_UNARMED` then
+                    isPlayerArmed = true
                 end
             end
 
-            playerDead = framework.isPlayerDead()
+            -- player health
+            local playerHealth = GetEntityHealth(cache.ped) - 100
 
-            -- Stamina
-            if not IsEntityInWater(player) then
-                oxygen = 100 - GetPlayerSprintStaminaRemaining(playerId)
+            -- player armor
+            local playerArmour = GetPedArmour(cache.ped)
+
+            -- player dead state
+            local isPlayerDead = framework.isPlayerDead()
+
+            local playerOxygen = 100
+            local isPlayerInWater = IsEntityInWater(cache.ped)
+
+            -- player stamina
+            if not isPlayerInWater then
+                playerOxygen = 100 - GetPlayerSprintStaminaRemaining(cache.playerId)
             end
 
-            -- Oxygen
-            if IsEntityInWater(player) then
-                oxygen = GetPlayerUnderwaterTimeRemaining(playerId) * 10
+            -- player oxygen
+            if isPlayerInWater then
+                playerOxygen = GetPlayerUnderwaterTimeRemaining(cache.playerId) * 10
             end
 
-            -- Voice setup
-            local talking = NetworkIsPlayerTalking(playerId)
-            local voice = 0
-            if LocalPlayer.state["proximity"] then
-                voice = LocalPlayer.state["proximity"].distance
-                -- Player enters server with Voice Chat off, will not have a distance (nil)
-                if voice == nil then
-                    voice = 0
-                end
-            end
+            -- player voice (based on pma-voice)
+            local isPlayerTalking = NetworkIsPlayerTalking(cache.playerId)
+            local playerRadioChannel = playerState["radioChannel"] or 0
+            local playerVoiceDistance = playerState["proximity"]?.distance or 0 -- the state would return nil if player enters server with voice chat off, therefore 0 as fallback
 
-            if IsPauseMenuActive() then
-                show = false
-            end
-
-            if not (cache.vehicle and not IsThisModelABicycle(cache.vehicle)) then
-                updatePlayerHud({
-                    show,
-                    GetEntityHealth(player) - 100,
-                    playerDead,
-                    GetPedArmour(player),
-                    thirst,
-                    hunger,
-                    stress,
-                    voice,
-                    LocalPlayer.state["radioChannel"],
-                    radioTalking,
-                    talking,
-                    armed,
-                    oxygen,
-                    GetPedParachuteState(player),
-                    -1,
-                    cruiseOn,
-                    nitroActive,
-                    harness,
-                    hp,
-                    math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier),
-                    -1,
-                    menuConfig:get("isCineamticModeChecked"),
-                    dev,
-                })
-            end
-
-            -- Vehicle hud
-
-            if IsPedInAnyHeli(player) or IsPedInAnyPlane(player) then
-                showAltitude = true
-                showSeatbelt = false
-            end
+            -- player parachute
+            local playerParachuteState = GetPedParachuteState(cache.ped)
 
             if cache.vehicle and not IsThisModelABicycle(cache.vehicle) then
                 if not wasInVehicle then
@@ -588,67 +493,98 @@ CreateThread(function()
                 end
 
                 wasInVehicle = true
+                local shouldShowAltitude = IsPedInAnyHeli(cache.ped) or IsPedInAnyPlane(cache.ped) or false
+                local shouldShowSeatbelt = not shouldShowAltitude
+                local vehicleSpeed = math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier)
+                local vehicleEngineHealth = GetVehicleEngineHealth(cache.vehicle) / 10
 
                 updatePlayerHud({
-                    show,
-                    GetEntityHealth(player) - 100,
-                    playerDead,
-                    GetPedArmour(player),
+                    shouldShowHud,
+                    playerHealth,
+                    isPlayerDead,
+                    playerArmour,
                     thirst,
                     hunger,
                     stress,
-                    voice,
-                    LocalPlayer.state["radioChannel"],
+                    playerVoiceDistance,
+                    playerRadioChannel,
                     radioTalking,
-                    talking,
-                    armed,
-                    oxygen,
-                    GetPedParachuteState(player),
+                    isPlayerTalking,
+                    isPlayerArmed,
+                    playerOxygen,
+                    playerParachuteState,
                     nos,
                     cruiseOn,
                     nitroActive,
                     harness,
                     hp,
-                    math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier),
-                    (GetVehicleEngineHealth(cache.vehicle) / 10),
+                    vehicleSpeed,
+                    vehicleEngineHealth,
                     menuConfig:get("isCineamticModeChecked"),
                     dev,
                 })
 
-                updateVehicleHud({
-                    show,
-                    IsPauseMenuActive(),
+                vehicle.updateVehicleHud({
+                    shouldShowHud,
+                    false,
                     seatbeltOn,
-                    math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier),
+                    vehicleSpeed,
                     vehicle.getFuelLevel(cache.vehicle),
-                    math.ceil(GetEntityCoords(player).z * 0.5),
-                    showAltitude,
-                    showSeatbelt,
+                    math.ceil(cache.coords.z * 0.5),
+                    shouldShowAltitude,
+                    shouldShowSeatbelt,
                     radar.isBorderSquare(),
                     radar.isBorderCircle(),
                 })
-                showAltitude = false
-                showSeatbelt = true
             else
                 if wasInVehicle then
                     wasInVehicle = false
-                    updateShowVehicleHud(false)
-                    prevVehicleStats[1] = false
-                    prevVehicleStats[3] = false
+                    vehicle.hideHud()
                     seatbeltOn = false
                     cruiseOn = false
                     harness = false
                 end
 
+                updatePlayerHud({
+                    shouldShowHud,
+                    playerHealth,
+                    isPlayerDead,
+                    playerArmour,
+                    thirst,
+                    hunger,
+                    stress,
+                    playerVoiceDistance,
+                    playerRadioChannel,
+                    radioTalking,
+                    isPlayerTalking,
+                    isPlayerArmed,
+                    playerOxygen,
+                    playerParachuteState,
+                    -1,
+                    cruiseOn,
+                    nitroActive,
+                    harness,
+                    hp,
+                    -1,
+                    -1,
+                    menuConfig:get("isCineamticModeChecked"),
+                    dev,
+                })
+
                 radar.toggleMinimap(not menuConfig:get("isOutMapChecked"))
             end
+
+            ::skip::
         else
             -- Not logged in, dont show Status/Vehicle UI (cached)
             updateShowPlayerHud(false)
-            updateShowVehicleHud(false)
-            DisplayRadar(false)
-            Wait(1000)
+            vehicle.hideHud()
+            radar.toggleMinimap(false)
+
+            Wait(500)
         end
+
+        Wait(500)
     end
 end)
 
@@ -871,24 +807,23 @@ CreateThread(function()
         if LocalPlayer.state.isLoggedIn then
             Wait(400)
             local show = true
-            local player = PlayerPedId()
             local camRot = GetGameplayCamRot(0)
 
             if menuConfig:get("isCompassFollowChecked") then
                 heading = tostring(round(360.0 - ((camRot.z + 360.0) % 360.0)))
             else
-                heading = tostring(round(360.0 - GetEntityHeading(player)))
+                heading = tostring(round(360.0 - GetEntityHeading(cache.ped)))
             end
 
             if heading == "360" then
                 heading = "0"
             end
 
-            local playerInVehcile = IsPedInAnyVehicle(player, false)
+            local playerInVehcile = IsPedInAnyVehicle(cache.ped, false)
 
             if heading ~= lastHeading or lastInVehicle ~= playerInVehcile then
                 if playerInVehcile then
-                    local crossroads = getCrossroads(player)
+                    local crossroads = getCrossroads(cache.ped)
                     SendNUIMessage({
                         action = "update",
                         value = heading
@@ -929,7 +864,7 @@ CreateThread(function()
                 end
             end
             lastHeading = heading
-            if lastIsOutCompassCheck ~= menuConfig:get("isOutCompassChecked") and not IsPedInAnyVehicle(player, false) then
+            if lastIsOutCompassCheck ~= menuConfig:get("isOutCompassChecked") and not IsPedInAnyVehicle(cache.ped, false) then
                 if not menuConfig:get("isOutCompassChecked") then
                     SendNUIMessage({
                         action = "baseplate",

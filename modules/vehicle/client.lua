@@ -114,5 +114,60 @@ if Config.EnableEngineToggle then
     })
 end
 
+local cachedVehicleStats = {
+    nil, --[1] show,
+    nil, --[2] isPaused,
+    nil, --[3] seatbelt
+    nil, --[4] speed
+    nil, --[5] fuel
+    nil, --[6] altitude
+    nil, --[7] showAltitude
+    nil, --[8] showSeatbelt
+    nil, --[9] showSquareB
+    nil  --[10] showCircleB
+}
+
+function vehicle.hideHud()
+    cachedVehicleStats[1] = false
+    cachedVehicleStats[3] = false
+
+    SendNUIMessage({
+        action = "car",
+        topic = "display",
+        show = false,
+        seatbelt = false,
+    })
+end
+
+---@param data table<number, any>
+function vehicle.updateHud(data)
+    local shouldUpdate = false
+
+    for i = 1, #data do
+        if cachedVehicleStats[i] ~= data[i] then
+            shouldUpdate = true
+            break
+        end
+    end
+
+    if shouldUpdate then
+        cachedVehicleStats = data
+
+        SendNUIMessage({
+            action = "car",
+            topic = "status",
+            show = data[1],
+            isPaused = data[2],
+            seatbelt = data[3],
+            speed = data[4],
+            fuel = data[5],
+            altitude = data[6],
+            showAltitude = data[7],
+            showSeatbelt = data[8],
+            showSquareB = data[9],
+            showCircleB = data[10],
+        })
+    end
+end
 
 return vehicle
