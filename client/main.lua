@@ -1,4 +1,3 @@
-local QBCore = exports["qb-core"]:GetCoreObject()
 local serverId = GetPlayerServerId(PlayerId())
 local UIConfig = UIConfig
 local speedMultiplier = Config.UseMPH and 2.23694 or 3.6
@@ -21,6 +20,7 @@ local radioTalking = false
 local sound = require("modules.sound.client")
 local radar = require("modules.radar.client")
 local utils = require("modules.utility.client")
+local player = require("modules.player.client")
 local framework = require("modules.bridge.main")
 local vehicle = require("modules.vehicle.client")
 local menuConfig = require("modules.menuConfig.client")
@@ -88,15 +88,6 @@ local function setupResource()
     end
 
     loadRadar()
-end
-
-function framework.playerLoaded()
-    setupResource()
-end
-
-function framework.playerUnloaded()
-    isAdmin = false
-    sendAdminStatus()
 end
 
 ---Setup the resource on resource restart on live server
@@ -297,7 +288,7 @@ RegisterNetEvent("hud:client:UpdateHarness", function(harnessHp)
     hp = harnessHp
 end)
 
-RegisterNetEvent("qb-isAdmin:client:ToggleDevmode", function()
+RegisterNetEvent("qb-admin:client:ToggleDevmode", function()
     dev = not dev
 end)
 
@@ -367,79 +358,30 @@ RegisterNetEvent("hud:client:EnhancementEffect", function(data)
     end
 end)
 
-local function IsWhitelistedWeaponArmed(weapon)
-    if weapon then
-        for _, v in pairs(Config.WhitelistedWeaponArmed) do
-            if weapon == v then
-                return true
-            end
+---@param weaponHash number
+---@return boolean
+local function isWhitelistedWeaponArmed(weaponHash)
+    for i = 1, #Config.WhitelistedWeaponArmed do
+        if weaponHash == Config.WhitelistedWeaponArmed[i] then
+            return true
         end
     end
+
     return false
 end
 
-local prevPlayerStats = { nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil }
-
-local function updateShowPlayerHud(show)
-    if prevPlayerStats["show"] ~= show then
-        prevPlayerStats["show"] = show
-        SendNUIMessage({
-            action = "hudtick",
-            topic = "display",
-            show = show
-        })
-    end
-end
-
-local function updatePlayerHud(data)
-    local shouldUpdate = false
-    for k, v in pairs(data) do
-        if prevPlayerStats[k] ~= v then
-            shouldUpdate = true
-            break
-        end
-    end
-    if shouldUpdate then
-        -- Since we found updated data, replace player cache with data
-        prevPlayerStats = data
-        SendNUIMessage({
-            action = "hudtick",
-            topic = "status",
-            show = data[1],
-            health = data[2],
-            playerDead = data[3],
-            armor = data[4],
-            thirst = data[5],
-            hunger = data[6],
-            stress = data[7],
-            voice = data[8],
-            radioChannel = data[9],
-            radioTalking = data[10],
-            talking = data[11],
-            armed = data[12],
-            oxygen = data[13],
-            parachute = data[14],
-            nos = data[15],
-            cruise = data[16],
-            nitroActive = data[17],
-            harness = data[18],
-            hp = data[19],
-            speed = data[20],
-            engine = data[21],
-            cinematic = data[22],
-            dev = data[23],
-        })
-    end
-end
-
 local playerState = LocalPlayer.state
+local isHudUpdateThreadActive = false
 
--- HUD Update loop
-CreateThread(function()
-    local wasInVehicle = false
+local function hudUpdateThread()
+    if isHudUpdateThreadActive then return end
 
-    while true do
-        if framework.isPlayerLoaded() then
+    isHudUpdateThreadActive = true
+
+    CreateThread(function()
+        local wasInVehicle = false
+
+        while framework.isPlayerLoaded() do
             local shouldShowHud = not IsPauseMenuActive()
 
             if not shouldShowHud then
@@ -450,7 +392,7 @@ CreateThread(function()
             -- player weapon
             local isPlayerArmed = false
 
-            if not IsWhitelistedWeaponArmed(cache.weapon) then
+            if not isWhitelistedWeaponArmed(cache.weapon) then
                 -- weapon ~= 0 fixes unarmed on Offroad vehicle Blzer Aqua showing armed bug
                 if cache.weapon and cache.weapon ~= `WEAPON_UNARMED` then
                     isPlayerArmed = true
@@ -498,7 +440,7 @@ CreateThread(function()
                 local vehicleSpeed = math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier)
                 local vehicleEngineHealth = GetVehicleEngineHealth(cache.vehicle) / 10
 
-                updatePlayerHud({
+                player.updateHud({
                     shouldShowHud,
                     playerHealth,
                     isPlayerDead,
@@ -524,7 +466,7 @@ CreateThread(function()
                     dev,
                 })
 
-                vehicle.updateVehicleHud({
+                vehicle.updateHud({
                     shouldShowHud,
                     false,
                     seatbeltOn,
@@ -545,7 +487,7 @@ CreateThread(function()
                     harness = false
                 end
 
-                updatePlayerHud({
+                player.updateHud({
                     shouldShowHud,
                     playerHealth,
                     isPlayerDead,
@@ -575,23 +517,28 @@ CreateThread(function()
             end
 
             ::skip::
-        else
-            -- Not logged in, dont show Status/Vehicle UI (cached)
-            updateShowPlayerHud(false)
-            vehicle.hideHud()
-            radar.toggleMinimap(false)
 
             Wait(500)
         end
 
-        Wait(500)
-    end
-end)
+        player.hideHud()
+        vehicle.hideHud()
+        radar.toggleMinimap(false)
+        isHudUpdateThreadActive = false
+    end)
+end
 
+function framework.playerLoaded()
+    setupResource()
+    hudUpdateThread()
+end
 
+function framework.playerUnloaded()
+    isAdmin = false
+    sendAdminStatus()
+end
 
 -- Money HUD
-
 RegisterNetEvent("hud:client:ShowAccounts", function(type, amount)
     if type == "cash" then
         SendNUIMessage({
@@ -609,7 +556,6 @@ RegisterNetEvent("hud:client:ShowAccounts", function(type, amount)
 end)
 
 -- Harness Check / Seatbelt Check
-
 CreateThread(function()
     while true do
         Wait(1500)
@@ -628,7 +574,6 @@ end)
 
 
 -- Stress Gain
-
 CreateThread(function() -- Speeding
     while true do
         if LocalPlayer.state.isLoggedIn then
@@ -747,7 +692,7 @@ CreateThread(function()
     while true do
         SetRadarBigmapEnabled(false, false)
         SetRadarZoom(1000)
-        Wait(500)
+        Wait(1000)
     end
 end)
 
