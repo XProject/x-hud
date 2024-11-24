@@ -23,15 +23,17 @@ local parachute = -1
 local oxygen = 100
 local engine = 0
 local dev = false
-local admin = false
+local isAdmin = false
 local playerDead = false
-local showMenu = false
+local isMenuShowing = false
 local radioTalking = false
 
 
 lib.locale()
-local utils = require("shared.utils")
+lib.load("modules.sound.client")
 local radar = require("modules.radar.client")
+local utils = require("modules.utility.client")
+local framework = lib.load("modules.bridge.main")
 local menuConfig = require("modules.menuConfig.client")
 
 radar.toggleMinimap(false)
@@ -45,18 +47,21 @@ local function hasHarness()
     harness = false
 end
 
-local function loadSettings()
-    utils.showNotification(locale("hud_settings_loaded"))
-    Wait(1000)
-    TriggerEvent("hud:client:LoadMap")
+local function loadRadar()
+    if radar.loadMap() then
+        Wait(1000)
+        utils.showNotification(locale("hud_settings_loaded"))
+    else
+        lib.print.error("Radar could not be loaded!")
+    end
 end
 
-local function SendAdminStatus()
+local function sendAdminStatus()
     SendNUIMessage({
         action = "menu",
         topic = "adminonly",
         adminOnly = Config.AdminOnly,
-        isAdmin = admin,
+        isAdmin = isAdmin,
     })
 end
 
@@ -72,95 +77,91 @@ end
 local function sendUILang()
     SendNUIMessage({
         action = "setLang",
-        lang = GetConvar("qb_locale", "en")
+        lang = GetConvar("ox:locale", "en")
     })
 end
 
-local function HandleSetupResource()
-    QBCore.Functions.TriggerCallback("hud:server:getRank", function(isAdminOrGreater)
-        if isAdminOrGreater then
-            admin = true
-        else
-            admin = false
-        end
-        SendAdminStatus()
-    end)
+local function setupResource()
+    if lib.callback.await("hud:server:getRank", false) then
+        isAdmin = true
+    else
+        isAdmin = false
+    end
+
+    sendUILang()
+    sendAdminStatus()
+
     if Config.AdminOnly then
         -- Send the client what the saved ui config is (enforced by the server)
         if next(UIConfig) then
             sendUIUpdateMessage(UIConfig)
         end
     end
-    sendUILang()
+
+    loadRadar()
 end
 
-RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()
-    Wait(2000)
-    HandleSetupResource()
-    -- local hudSettings = GetResourceKvpString("hudSettings")
-    -- if hudSettings then loadSettings(json.decode(hudSettings)) end
-    loadSettings()
-    PlayerData = QBCore.Functions.GetPlayerData()
-end)
+function framework.playerLoaded()
+    setupResource()
+end
 
-RegisterNetEvent("QBCore:Client:OnPlayerUnload", function()
-    PlayerData = {}
-    admin = false
-    SendAdminStatus()
-end)
+function framework.playerUnloaded()
+    isAdmin = false
+    sendAdminStatus()
+end
 
-RegisterNetEvent("QBCore:Player:SetPlayerData", function(val)
-    PlayerData = val
-end)
-
--- Event Handlers
+---Setup the resource on resource restart on live server
 AddEventHandler("onResourceStart", function(resourceName)
-    if GetCurrentResourceName() ~= resourceName then return end
+    if resourceName ~= cache.resource then return end
+
     Wait(1000)
 
-    HandleSetupResource()
-    -- local hudSettings = GetResourceKvpString("hudSettings")
-    -- if hudSettings then loadSettings(json.decode(hudSettings)) end
-    loadSettings()
+    if framework.isPlayerLoaded() then
+        setupResource()
+    end
 end)
 
 AddEventHandler("pma-voice:radioActive", function(isRadioTalking)
     radioTalking = isRadioTalking
 end)
 
--- Callbacks & Events
-RegisterCommand("menu", function()
-    Wait(50)
-    if showMenu then return end
+RegisterCommand("hud", function()
+    if isMenuShowing then return end
+
+    isMenuShowing = true
+
     TriggerEvent("hud:client:playOpenMenuSounds")
+
     SetNuiFocus(true, true)
     SendNUIMessage({ action = "open" })
-    showMenu = true
 end, false)
 
-RegisterNUICallback("closeMenu", function(_, cb)
-    cb({})
-    Wait(50)
+utils.NuiCallback("closeMenu", function()
     TriggerEvent("hud:client:playCloseMenuSounds")
-    showMenu = false
+
+    isMenuShowing = false
     SetNuiFocus(false, false)
 end)
 
-RegisterKeyMapping("menu", locale("open_menu"), "keyboard", Config.OpenMenu)
+RegisterKeyMapping("hud", locale("open_menu"), "keyboard", Config.OpenMenu)
 
--- Reset hud
 local function restartHud()
     TriggerEvent("hud:client:playResetHudSounds")
-    QBCore.Functions.Notify(locale("hud_restart"), "error")
+
+    utils.showNotification(locale("hud_restart"))
+
     Wait(1500)
-    if IsPedInAnyVehicle(PlayerPedId(), false) then
+
+    if cache.vehicle then
         SendNUIMessage({
             action = "car",
             topic = "display",
             show = false,
             seatbelt = false,
         })
+
         Wait(500)
+
         SendNUIMessage({
             action = "car",
             topic = "display",
@@ -168,109 +169,47 @@ local function restartHud()
             seatbelt = false,
         })
     end
+
     SendNUIMessage({
         action = "hudtick",
         topic = "display",
         show = false,
     })
+
     Wait(500)
+
     SendNUIMessage({
         action = "hudtick",
         topic = "display",
         show = true,
     })
+
     Wait(500)
-    QBCore.Functions.Notify(locale("hud_start"), "success")
+
     SendNUIMessage({
         action = "menu",
         topic = "restart",
     })
+
+    utils.showNotification(locale("hud_start"))
 end
 
-RegisterNUICallback("restartHud", function(_, cb)
-    cb({})
-    Wait(50)
+utils.NuiCallback("restartHud", function()
     restartHud()
 end)
 
 RegisterCommand("resethud", function()
-    Wait(50)
     restartHud()
 end, false)
 
-RegisterNUICallback("resetStorage", function(_, cb)
-    cb({})
-    Wait(50)
+utils.NuiCallback("resetStorage", function()
     TriggerEvent("hud:client:resetStorage")
 end)
 
 RegisterNetEvent("hud:client:resetStorage", function()
-    Wait(50)
-    if Menu.isResetSoundsChecked then
-        TriggerServerEvent("InteractSound_SV:PlayOnSource", "airwrench", 0.1)
-    end
-    QBCore.Functions.TriggerCallback("hud:server:getMenu", function(menu)
-        loadSettings()
-        SetResourceKvp("hudSettings", json.encode(menu))
-    end)
-end)
+    TriggerEvent("hud:client:playResetHudSounds")
 
--- Notifications
-RegisterNUICallback("openMenuSounds", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isOpenMenuSoundsChecked = true
-    else
-        Menu.isOpenMenuSoundsChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
-RegisterNetEvent("hud:client:playOpenMenuSounds", function()
-    Wait(50)
-    if not Menu.isOpenMenuSoundsChecked then return end
-    TriggerServerEvent("InteractSound_SV:PlayOnSource", "monkeyopening", 0.5)
-end)
-
-RegisterNetEvent("hud:client:playCloseMenuSounds", function()
-    Wait(50)
-    if not Menu.isOpenMenuSoundsChecked then return end
-    TriggerServerEvent("InteractSound_SV:PlayOnSource", "catclosing", 0.05)
-end)
-
-RegisterNUICallback("resetHudSounds", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isResetSoundsChecked = true
-    else
-        Menu.isResetSoundsChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
-RegisterNetEvent("hud:client:playResetHudSounds", function()
-    Wait(50)
-    if not Menu.isResetSoundsChecked then return end
-    TriggerServerEvent("InteractSound_SV:PlayOnSource", "airwrench", 0.1)
-end)
-
-RegisterNUICallback("checklistSounds", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isListSoundsChecked = true
-    else
-        Menu.isListSoundsChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
-RegisterNetEvent("hud:client:playHudChecklistSound", function()
-    Wait(50)
-    if not Menu.isListSoundsChecked then return end
-    TriggerServerEvent("InteractSound_SV:PlayOnSource", "shiftyclick", 0.5)
+    loadRadar()
 end)
 
 RegisterNUICallback("showOutMap", function(data, cb)
@@ -391,9 +330,9 @@ RegisterNUICallback("updateMenuSettingsToClient", function(data, cb)
     Menu.isOutMapChecked = data.isOutMapChecked
     Menu.isOutCompassChecked = data.isOutCompassChecked
     Menu.isCompassFollowChecked = data.isCompassFollowChecked
-    Menu.isOpenMenuSoundsChecked = data.isOpenMenuSoundsChecked
-    Menu.isResetSoundsChecked = data.isResetSoundsChecked
-    Menu.isListSoundsChecked = data.isListSoundsChecked
+    menuConfig:set("isOpenMenuSoundsChecked", data.isOpenMenuSoundsChecked)
+    menuConfig:set("isResetSoundsChecked", data.isResetSoundsChecked)
+    menuConfig:set("isListSoundsChecked", data.isListSoundsChecked)
     menuConfig:set("isMapNotifChecked", data.isMapNotifyChecked)
     Menu.isLowFuelChecked = data.isLowFuelAlertChecked
     menuConfig:set("isCinematicNotifChecked", data.isCinematicNotifyChecked)
@@ -457,7 +396,7 @@ RegisterNetEvent("hud:client:UpdateHarness", function(harnessHp)
     hp = harnessHp
 end)
 
-RegisterNetEvent("qb-admin:client:ToggleDevmode", function()
+RegisterNetEvent("qb-isAdmin:client:ToggleDevmode", function()
     dev = not dev
 end)
 
@@ -671,7 +610,6 @@ local function getFuelLevel(vehicle)
 end
 
 -- HUD Update loop
-
 CreateThread(function()
     local wasInVehicle = false
     while true do
@@ -693,7 +631,7 @@ CreateThread(function()
                 end
             end
 
-            playerDead = IsEntityDead(player) or PlayerData.metadata["inlaststand"] or PlayerData.metadata["isdead"] or false
+            playerDead = framework.isPlayerDead()
             parachute = GetPedParachuteState(player)
 
             -- Stamina
