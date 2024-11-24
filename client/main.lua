@@ -212,17 +212,6 @@ RegisterNetEvent("hud:client:resetStorage", function()
     loadRadar()
 end)
 
-RegisterNUICallback("showOutMap", function(data, cb)
-    cb({})
-    Wait(50)
-    if data.checked then
-        Menu.isOutMapChecked = true
-    else
-        Menu.isOutMapChecked = false
-    end
-    TriggerEvent("hud:client:playHudChecklistSound")
-end)
-
 RegisterNUICallback("saveUISettings", function(data, cb)
     cb({})
     Wait(50)
@@ -327,7 +316,7 @@ RegisterNUICallback("changeCompassFPS", function(data, cb)
 end)
 
 RegisterNUICallback("updateMenuSettingsToClient", function(data, cb)
-    Menu.isOutMapChecked = data.isOutMapChecked
+    menuConfig:set("isOutMapChecked", data.isOutMapChecked)
     Menu.isOutCompassChecked = data.isOutCompassChecked
     Menu.isCompassFollowChecked = data.isCompassFollowChecked
     menuConfig:set("isOpenMenuSoundsChecked", data.isOpenMenuSoundsChecked)
@@ -753,7 +742,8 @@ CreateThread(function()
                     cruiseOn = false
                     harness = false
                 end
-                DisplayRadar(not Menu.isOutMapChecked)
+
+                radar.toggleMinimap(not menuConfig:get("isOutMapChecked"))
             end
         else
             -- Not logged in, dont show Status/Vehicle UI (cached)

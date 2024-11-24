@@ -254,6 +254,18 @@ function radar.isBorderCircle()
     return circleBorder
 end
 
+menuConfig:set("isOutMapChecked", true) -- default value
+
+utils.NuiCallback("showOutMap", function(data)
+    if data.checked then
+        menuConfig:set("isOutMapChecked", true)
+    else
+        menuConfig:set("isOutMapChecked", false)
+    end
+
+    TriggerEvent("hud:client:playHudChecklistSound")
+end)
+
 CreateThread(function()
     local minimap = RequestScaleformMovie("minimap")
 

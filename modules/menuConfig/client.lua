@@ -1,10 +1,6 @@
 local menuConfig = {
-    -- isOutMapChecked = true,
     -- isOutCompassChecked = true,
     -- isCompassFollowChecked = true,
-    -- isOpenMenuSoundsChecked = true,
-    -- isResetSoundsChecked = true,
-    -- isListSoundsChecked = true,
     -- isLowFuelChecked = true,
     -- isDynamicEngineChecked = true,
     -- isDynamicNitroChecked = true,
