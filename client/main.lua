@@ -5,9 +5,6 @@ local seatbeltOn = false
 local cruiseOn = false
 local next = next
 local nos = 0
-local stress = 0
-local hunger = 100
-local thirst = 100
 local nitroActive = 0
 local harness = false
 local hp = 100
@@ -21,6 +18,7 @@ local sound = require("modules.sound.client")
 local radar = require("modules.radar.client")
 local utils = require("modules.utility.client")
 local player = require("modules.player.client")
+local status = require("modules.status.client")
 local framework = require("modules.bridge.main")
 local vehicle = require("modules.vehicle.client")
 local seatbelt = require("modules.seatbelt.client")
@@ -244,29 +242,8 @@ exports("showMoney", function(moneyType, moneyAmount, cashMoney, bankMoney, isMi
     })
 end)
 
-RegisterNetEvent("hud:client:UpdateNeeds", function(newHunger, newThirst) -- Triggered in qb-core
-    hunger = newHunger
-    thirst = newThirst
-end)
-
-AddStateBagChangeHandler("hunger", ("player:%s"):format(serverId), function(_, _, value)
-    hunger = value
-end)
-
-AddStateBagChangeHandler("thirst", ("player:%s"):format(serverId), function(_, _, value)
-    thirst = value
-end)
-
-AddStateBagChangeHandler("stress", ("player:%s"):format(serverId), function(_, _, value)
-    stress = value
-end)
-
 AddStateBagChangeHandler("harness", ("player:%s"):format(serverId), function(_, _, value)
     harness = value
-end)
-
-RegisterNetEvent("hud:client:UpdateStress", function(newStress) -- Add this event with adding stress elsewhere
-    stress = newStress
 end)
 
 RegisterNetEvent("seatbelt:client:ToggleSeatbelt", function(forcedState) -- Triggered in smallresources
@@ -450,9 +427,9 @@ local function hudUpdateThread()
                         playerHealth,
                         isPlayerDead,
                         playerArmour,
-                        thirst,
-                        hunger,
-                        stress,
+                        status.getThirst(),
+                        status.getHunger(),
+                        status.getStress(),
                         playerVoiceDistance,
                         playerRadioChannel,
                         radioTalking,
@@ -497,9 +474,9 @@ local function hudUpdateThread()
                         playerHealth,
                         isPlayerDead,
                         playerArmour,
-                        thirst,
-                        hunger,
-                        stress,
+                        status.getThirst(),
+                        status.getHunger(),
+                        status.getStress(),
                         playerVoiceDistance,
                         playerRadioChannel,
                         radioTalking,
@@ -559,25 +536,6 @@ RegisterNetEvent("hud:client:ShowAccounts", function(type, amount)
     end
 end)
 
--- Stress Gain
-CreateThread(function() -- Speeding
-    while true do
-        if LocalPlayer.state.isLoggedIn then
-            local ped = PlayerPedId()
-            if IsPedInAnyVehicle(ped, false) then
-                local speed = GetEntitySpeed(GetVehiclePedIsIn(ped, false)) * speedMultiplier
-                local stressSpeed = seatbeltOn and Config.MinimumSpeed or Config.MinimumSpeedUnbuckled
-                local vehClass = GetVehicleClass(GetVehiclePedIsIn(ped, false))
-                if Config.VehClassStress[tostring(vehClass)] then
-                    if speed >= stressSpeed then
-                        TriggerServerEvent("hud:server:GainStress", math.random(1, 3))
-                    end
-                end
-            end
-        end
-        Wait(10000)
-    end
-end)
 
 local function IsWhitelistedWeaponStress(weapon)
     if weapon then
@@ -607,66 +565,6 @@ CreateThread(function() -- Shooting
             else
                 Wait(1000)
             end
-        else
-            Wait(1000)
-        end
-    end
-end)
-
--- Stress Screen Effects
-
-local function GetBlurIntensity(stresslevel)
-    for k, v in pairs(Config.Intensity["blur"]) do
-        if stresslevel >= v.min and stresslevel <= v.max then
-            return v.intensity
-        end
-    end
-    return 1500
-end
-
-local function GetEffectInterval(stresslevel)
-    for k, v in pairs(Config.EffectInterval) do
-        if stresslevel >= v.min and stresslevel <= v.max then
-            return v.timeout
-        end
-    end
-    return 60000
-end
-
-CreateThread(function()
-    while true do
-        if LocalPlayer.state.isLoggedIn then
-            local ped = PlayerPedId()
-            local effectInterval = GetEffectInterval(stress)
-            if stress >= 100 then
-                local BlurIntensity = GetBlurIntensity(stress)
-                local FallRepeat = math.random(2, 4)
-                local RagdollTimeout = FallRepeat * 1750
-                TriggerScreenblurFadeIn(1000.0)
-                Wait(BlurIntensity)
-                TriggerScreenblurFadeOut(1000.0)
-
-                if not IsPedRagdoll(ped) and IsPedOnFoot(ped) and not IsPedSwimming(ped) then
-                    SetPedToRagdollWithFall(ped, RagdollTimeout, RagdollTimeout, 1, GetEntityForwardVector(ped) --[[@as number]], 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-                end
-
-                Wait(1000)
-                for i = 1, FallRepeat, 1 do
-                    Wait(750)
-                    DoScreenFadeOut(200)
-                    Wait(1000)
-                    DoScreenFadeIn(200)
-                    TriggerScreenblurFadeIn(1000.0)
-                    Wait(BlurIntensity)
-                    TriggerScreenblurFadeOut(1000.0)
-                end
-            elseif stress >= Config.MinimumStress then
-                local BlurIntensity = GetBlurIntensity(stress)
-                TriggerScreenblurFadeIn(1000.0)
-                Wait(BlurIntensity)
-                TriggerScreenblurFadeOut(1000.0)
-            end
-            Wait(effectInterval)
         else
             Wait(1000)
         end

@@ -7,9 +7,6 @@ Config.Framework = "qb"            -- "esx" or "qb"
 Config.OpenMenu = "I"              -- keybind to toggle hud settings menu (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/)
 Config.StressChance = 0.1          -- Default: 10% -- Percentage Stress Chance When Shooting (0-1)
 Config.UseMPH = false              -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
-Config.MinimumStress = 50          -- Minimum Stress Level For Screen Shaking
-Config.MinimumSpeedUnbuckled = 50  -- Going Over This Speed Will Cause Stress
-Config.MinimumSpeed = 180          -- Going Over This Speed Will Cause Stress
 Config.DisablePoliceStress = false -- Default: false, If true will disable stress for people with the police job
 
 -- admin
@@ -37,6 +34,12 @@ Config.Harness = {
     MinimumSpeed = 200.0                   -- if the above (Config.Harness.DisableFlyingThroughWindscreen) is set to false, minimum speed to fly through windscreen when harness is on (it requires Config.EnableSeatbelt to be "true")
 }
 
+-- stress status
+Config.EnableStressEffects = true             -- whether this script should run its built-in effects on stress increasing
+Config.MinimumStressForEffects = 50           -- minimum stress level for screen blurring effects to take place (it requires Config.EnableStressEffects to be "true")
+Config.EnableStressOnSpeeding = true          -- whether this script should run its built-in vehicle speed monitoring to increase stress periodically (it requires Config.EnableSeatbelt to be "true")
+Config.MinimumUnbuckledSpeedToGainStress = 50 -- going over this speed while having seatbelt unbuckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
+Config.MinimumBuckledSpeedToGainStress = 180  -- going over this speed even while having seatbelt buckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
 
 -- Stress
 Config.WhitelistedWeaponArmed = { -- weapons specifically whitelisted to not show armed mode
@@ -86,61 +89,36 @@ Config.WhitelistedWeaponStress = {
     `weapon_fireextinguisher`
 }
 
-Config.Intensity = {
-    ["blur"] = {
-        [1] = {
-            min = 50,
-            max = 60,
-            intensity = 1500,
-        },
-        [2] = {
-            min = 60,
-            max = 70,
-            intensity = 2000,
-        },
-        [3] = {
-            min = 70,
-            max = 80,
-            intensity = 2500,
-        },
-        [4] = {
-            min = 80,
-            max = 90,
-            intensity = 2700,
-        },
-        [5] = {
-            min = 90,
-            max = 100,
-            intensity = 3000,
-        },
-    }
-}
-
-Config.EffectInterval = {
+Config.BlurLevels = {
     [1] = {
         min = 50,
         max = 60,
+        intensity = 2000,
         timeout = math.random(50000, 60000)
     },
     [2] = {
         min = 60,
         max = 70,
+        intensity = 2500,
         timeout = math.random(40000, 50000)
     },
     [3] = {
         min = 70,
         max = 80,
+        intensity = 3000,
         timeout = math.random(30000, 40000)
     },
     [4] = {
         min = 80,
         max = 90,
+        intensity = 3500,
         timeout = math.random(20000, 30000)
     },
     [5] = {
         min = 90,
         max = 100,
-        timeout = math.random(15000, 20000)
+        intensity = 4000,
+        timeout = math.random(10000, 20000)
     }
 }
 
