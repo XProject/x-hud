@@ -9,7 +9,7 @@ Config.StressChance = 0.1          -- Default: 10% -- Percentage Stress Chance W
 Config.UseMPH = false              -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
 Config.MinimumStress = 50          -- Minimum Stress Level For Screen Shaking
 Config.MinimumSpeedUnbuckled = 50  -- Going Over This Speed Will Cause Stress
-Config.MinimumSpeed = 100          -- Going Over This Speed Will Cause Stress
+Config.MinimumSpeed = 180          -- Going Over This Speed Will Cause Stress
 Config.DisablePoliceStress = false -- Default: false, If true will disable stress for people with the police job
 
 -- admin
@@ -28,6 +28,8 @@ Config.LowFuel = 20              -- minimum fuel level to trigger the low fuel a
 -- seatbelt
 Config.EnableSeatbelt = true               -- whether this script should run its built-in seatbelt handler module
 Config.SeatbeltKeybind = "B"               -- keybind to toggle seatbelt (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/) (it requires Config.EnableSeatbelt to be "true")
+Config.SeatbeltUnbuckledAlert = true       -- whether this script should handle and send sound alert on unbuckled seatbelt (it requires Config.EnableSeatbelt to be "true")
+Config.SeatbeltUnbuckledAlertSpeed = 10.0  -- minimum vehicle speed to trigger the alert if seatbelt is not buckled in (it requires Config.SeatbeltUnbuckledAlert to be "true")
 Config.MinimumUnbuckledSpeedToEject = 20.0 -- minimum speed to fly through windscreen when seatbelt is off (it requires Config.EnableSeatbelt to be "true")
 Config.MinimumBuckledSpeedToEject = 160.0  -- minimum speed to fly through windscreen when seatbelt is on (it requires Config.EnableSeatbelt to be "true")
 Config.Harness = {

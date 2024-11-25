@@ -1,3 +1,4 @@
+local seatbelt = require("modules.seatbelt.server")
 local QBCore = exports["qb-core"]:GetCoreObject()
 local ResetStress = false
 

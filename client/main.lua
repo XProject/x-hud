@@ -30,13 +30,6 @@ radar.toggleMinimap(false)
 
 RegisterNetEvent("hud:client:LoadMap", radar.loadMap)
 
----TODO
-local function hasHarness()
-    if not cache.vehicle then return end
-
-    harness = false
-end
-
 local function loadRadar()
     if radar.loadMap() then
         Wait(1000)
@@ -266,6 +259,10 @@ end)
 
 AddStateBagChangeHandler("stress", ("player:%s"):format(serverId), function(_, _, value)
     stress = value
+end)
+
+AddStateBagChangeHandler("harness", ("player:%s"):format(serverId), function(_, _, value)
+    harness = value
 end)
 
 RegisterNetEvent("hud:client:UpdateStress", function(newStress) -- Add this event with adding stress elsewhere
@@ -561,24 +558,6 @@ RegisterNetEvent("hud:client:ShowAccounts", function(type, amount)
         })
     end
 end)
-
--- Harness Check / Seatbelt Check
-CreateThread(function()
-    while true do
-        Wait(1500)
-        if LocalPlayer.state.isLoggedIn then
-            local ped = PlayerPedId()
-            if IsPedInAnyVehicle(ped, false) then
-                hasHarness()
-                local veh = GetEntityModel(GetVehiclePedIsIn(ped, false))
-                if seatbeltOn ~= true and IsThisModelACar(veh) then
-                    TriggerEvent("InteractSound_CL:PlayOnOne", "beltalarm", 0.6)
-                end
-            end
-        end
-    end
-end)
-
 
 -- Stress Gain
 CreateThread(function() -- Speeding
