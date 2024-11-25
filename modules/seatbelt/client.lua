@@ -69,9 +69,9 @@ local function seatbeltAlarmThread()
 
                 Wait(1500)
             end
-
-            isSeatbeltAlarmThreadActive = false
         end
+
+        isSeatbeltAlarmThreadActive = false
     end)
 end
 

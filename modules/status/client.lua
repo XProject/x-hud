@@ -55,6 +55,8 @@ if Config.EnableStressOnSpeeding and Config.EnableSeatbelt then
         Wait(500)
         speedMonitoringThread()
     end)
+
+    do speedMonitoringThread() end -- for resource restart
 end
 
 if Config.EnableStressEffects then
@@ -130,7 +132,14 @@ if Config.GainStressWhileShooting then
         return false
     end
 
+    local function isPlayerTryingToShoot()
+        return IsPlayerFreeAiming(cache.playerId) or
+            IsControlPressed(0, 24) or IsControlJustPressed(0, 24) or
+            IsControlReleased(0, 24) or IsControlJustReleased(0, 24)
+    end
+
     local isMonitorShootingThreadActive = false
+
     local function monitorShootingThread()
         if isMonitorShootingThreadActive or not cache.weapon then return end
 
@@ -138,8 +147,8 @@ if Config.GainStressWhileShooting then
 
         CreateThread(function()
             while cache.weapon do
-                if cache.weapon ~= `WEAPON_UNARMED` and isWeaponWhitelistedForStress(cache.weapon) then
-                    while IsPlayerFreeAiming(cache.playerId) do
+                if cache.weapon ~= `WEAPON_UNARMED` and not isWeaponWhitelistedForStress(cache.weapon) then
+                    while isPlayerTryingToShoot() do
                         if IsPedShooting(cache.ped) then
                             if math.random() < Config.StressWhileShootingChance then
                                 TriggerServerEvent("hud:server:GainStress", math.random(1, 3))
@@ -157,12 +166,14 @@ if Config.GainStressWhileShooting then
 
             isMonitorShootingThreadActive = false
         end)
-
-        AddEventHandler("ox_lib:cache:weapon", function()
-            Wait(500)
-            monitorShootingThread()
-        end)
     end
+
+    AddEventHandler("ox_lib:cache:weapon", function()
+        Wait(500)
+        monitorShootingThread()
+    end)
+
+    do monitorShootingThread() end -- for resource restart
 end
 
 return status

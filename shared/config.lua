@@ -40,7 +40,7 @@ Config.EnableStressOnSpeeding = true          -- whether this script should run 
 Config.MinimumUnbuckledSpeedToGainStress = 50 -- going over this speed while having seatbelt unbuckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
 Config.MinimumBuckledSpeedToGainStress = 180  -- going over this speed even while having seatbelt buckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
 Config.GainStressWhileShooting = true         -- whether this script should increase player stress while shooting
-Config.StressWhileShootingChance = 1.0        -- chance to gain stress while shooting (accepted valid values are any number between 0 and 1 (%0 and %100)) (it requires Config.GainStressWhileShooting to be "true")
+Config.StressWhileShootingChance = 0.1        -- chance to gain stress while shooting (accepted valid values are any number between 0 and 1 (%0 and %100)) (it requires Config.GainStressWhileShooting to be "true")
 
 -- Stress
 Config.WhitelistedWeaponArmed = { -- weapons specifically whitelisted to not show armed mode
