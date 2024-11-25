@@ -71,7 +71,7 @@ end
 
 utils.NuiCallback("cinematicMode", function(data)
     if not radar.cinematicMode(data.checked) then
-        if (cache.vehicle and not IsThisModelABicycle(cache.vehicle)) or not Menu.isOutMapChecked then
+        if (cache.vehicle and not IsThisModelABicycle(cache.vehicle)) or not menuConfig:get("isOutMapChecked") then
             radar.toggleMinimap(true)
         end
     end
@@ -217,10 +217,11 @@ end)
 utils.NuiCallback("ToggleMapShape", function(data)
     if menuConfig:get("isMapEnabledChecked") then
         menuConfig:set("isToggleMapShapeChecked", data.shape)
-        radar.loadMap()
     end
 
     TriggerEvent("hud:client:playHudChecklistSound")
+
+    radar.loadMap()
 end)
 
 utils.NuiCallback("ToggleMapBorders", function(data)

@@ -61,8 +61,8 @@ if Config.EnableStressEffects then
     local function getBlurLevel(stressValue)
         local blurLevel = { intensity = 1500, timeout = 60000 }
 
-        for i = 1, #config.blurLevels do
-            local level = config.blurLevels[i]
+        for i = 1, #Config.BlurLevels do
+            local level = Config.BlurLevels[i]
 
             if stressValue >= level.min and stressValue <= level.max then
                 blurLevel.timeout = level.timeout

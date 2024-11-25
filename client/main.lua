@@ -21,6 +21,7 @@ local player = require("modules.player.client")
 local status = require("modules.status.client")
 local framework = require("modules.bridge.main")
 local vehicle = require("modules.vehicle.client")
+local compass = require("modules.compass.client")
 local seatbelt = require("modules.seatbelt.client")
 local menuConfig = require("modules.menuConfig.client")
 
