@@ -98,7 +98,7 @@ AddEventHandler("onResourceStart", function(resourceName)
     Wait(1000)
 
     if framework.isPlayerLoaded() then
-        setupResource()
+        framework.playerLoaded()
     end
 end)
 
@@ -394,138 +394,136 @@ local function hudUpdateThread()
             local shouldShowHud = not IsPauseMenuActive()
 
             if not shouldShowHud then
+                player.hideHud()
                 vehicle.hideHud()
-                goto skip
-            end
-
-            -- player weapon
-            local isPlayerArmed = false
-
-            if not isWhitelistedWeaponArmed(cache.weapon) then
-                -- weapon ~= 0 fixes unarmed on Offroad vehicle Blzer Aqua showing armed bug
-                if cache.weapon and cache.weapon ~= `WEAPON_UNARMED` then
-                    isPlayerArmed = true
-                end
-            end
-
-            -- player health
-            local playerHealth = GetEntityHealth(cache.ped) - 100
-
-            -- player armor
-            local playerArmour = GetPedArmour(cache.ped)
-
-            -- player dead state
-            local isPlayerDead = framework.isPlayerDead()
-
-            local playerOxygen = 100
-            local isPlayerInWater = IsEntityInWater(cache.ped)
-
-            -- player stamina
-            if not isPlayerInWater then
-                playerOxygen = 100 - GetPlayerSprintStaminaRemaining(cache.playerId)
-            end
-
-            -- player oxygen
-            if isPlayerInWater then
-                playerOxygen = GetPlayerUnderwaterTimeRemaining(cache.playerId) * 10
-            end
-
-            -- player voice (based on pma-voice)
-            local isPlayerTalking = NetworkIsPlayerTalking(cache.playerId)
-            local playerRadioChannel = playerState["radioChannel"] or 0
-            local playerVoiceDistance = playerState["proximity"]?.distance or 0 -- the state would return nil if player enters server with voice chat off, therefore 0 as fallback
-
-            -- player parachute
-            local playerParachuteState = GetPedParachuteState(cache.ped)
-
-            if cache.vehicle and not IsThisModelABicycle(cache.vehicle) then
-                if not wasInVehicle then
-                    radar.toggleMinimap(menuConfig:get("isMapEnabledChecked"))
-                end
-
-                wasInVehicle = true
-                local shouldShowAltitude = IsPedInAnyHeli(cache.ped) or IsPedInAnyPlane(cache.ped) or false
-                local shouldShowSeatbelt = not shouldShowAltitude
-                local vehicleSpeed = math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier)
-                local vehicleEngineHealth = GetVehicleEngineHealth(cache.vehicle) / 10
-
-                player.updateHud({
-                    shouldShowHud,
-                    playerHealth,
-                    isPlayerDead,
-                    playerArmour,
-                    thirst,
-                    hunger,
-                    stress,
-                    playerVoiceDistance,
-                    playerRadioChannel,
-                    radioTalking,
-                    isPlayerTalking,
-                    isPlayerArmed,
-                    playerOxygen,
-                    playerParachuteState,
-                    nos,
-                    cruiseOn,
-                    nitroActive,
-                    harness,
-                    hp,
-                    vehicleSpeed,
-                    vehicleEngineHealth,
-                    menuConfig:get("isCineamticModeChecked"),
-                    dev,
-                })
-
-                vehicle.updateHud({
-                    shouldShowHud,
-                    false,
-                    seatbeltOn,
-                    vehicleSpeed,
-                    vehicle.getFuelLevel(cache.vehicle),
-                    math.ceil(cache.coords.z * 0.5),
-                    shouldShowAltitude,
-                    shouldShowSeatbelt,
-                    radar.isBorderSquare(),
-                    radar.isBorderCircle(),
-                })
             else
-                if wasInVehicle then
-                    wasInVehicle = false
-                    vehicle.hideHud()
-                    seatbeltOn = false
-                    cruiseOn = false
-                    harness = false
+                -- player weapon
+                local isPlayerArmed = false
+
+                if not isWhitelistedWeaponArmed(cache.weapon) then
+                    -- weapon ~= 0 fixes unarmed on Offroad vehicle Blzer Aqua showing armed bug
+                    if cache.weapon and cache.weapon ~= `WEAPON_UNARMED` then
+                        isPlayerArmed = true
+                    end
                 end
 
-                player.updateHud({
-                    shouldShowHud,
-                    playerHealth,
-                    isPlayerDead,
-                    playerArmour,
-                    thirst,
-                    hunger,
-                    stress,
-                    playerVoiceDistance,
-                    playerRadioChannel,
-                    radioTalking,
-                    isPlayerTalking,
-                    isPlayerArmed,
-                    playerOxygen,
-                    playerParachuteState,
-                    -1,
-                    cruiseOn,
-                    nitroActive,
-                    harness,
-                    hp,
-                    -1,
-                    -1,
-                    menuConfig:get("isCineamticModeChecked"),
-                    dev,
-                })
+                -- player health
+                local playerHealth = GetEntityHealth(cache.ped) - 100
 
-                radar.toggleMinimap(not menuConfig:get("isOutMapChecked"))
+                -- player armor
+                local playerArmour = GetPedArmour(cache.ped)
+
+                -- player dead state
+                local isPlayerDead = framework.isPlayerDead()
+
+                local playerOxygen = 100
+                local isPlayerInWater = IsEntityInWater(cache.ped)
+
+                -- player stamina
+                if not isPlayerInWater then
+                    playerOxygen = 100 - GetPlayerSprintStaminaRemaining(cache.playerId)
+                end
+
+                -- player oxygen
+                if isPlayerInWater then
+                    playerOxygen = GetPlayerUnderwaterTimeRemaining(cache.playerId) * 10
+                end
+
+                -- player voice (based on pma-voice)
+                local isPlayerTalking = NetworkIsPlayerTalking(cache.playerId)
+                local playerRadioChannel = playerState["radioChannel"] or 0
+                local playerVoiceDistance = playerState["proximity"]?.distance or 0 -- the state would return nil if player enters server with voice chat off, therefore 0 as fallback
+
+                -- player parachute
+                local playerParachuteState = GetPedParachuteState(cache.ped)
+
+                if cache.vehicle and not IsThisModelABicycle(cache.vehicle) then
+                    if not wasInVehicle then
+                        radar.toggleMinimap(menuConfig:get("isMapEnabledChecked"))
+                    end
+
+                    wasInVehicle = true
+                    local shouldShowAltitude = IsPedInAnyHeli(cache.ped) or IsPedInAnyPlane(cache.ped) or false
+                    local shouldShowSeatbelt = not shouldShowAltitude
+                    local vehicleSpeed = math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier)
+                    local vehicleEngineHealth = GetVehicleEngineHealth(cache.vehicle) / 10
+
+                    player.updateHud({
+                        shouldShowHud,
+                        playerHealth,
+                        isPlayerDead,
+                        playerArmour,
+                        thirst,
+                        hunger,
+                        stress,
+                        playerVoiceDistance,
+                        playerRadioChannel,
+                        radioTalking,
+                        isPlayerTalking,
+                        isPlayerArmed,
+                        playerOxygen,
+                        playerParachuteState,
+                        nos,
+                        cruiseOn,
+                        nitroActive,
+                        harness,
+                        hp,
+                        vehicleSpeed,
+                        vehicleEngineHealth,
+                        menuConfig:get("isCineamticModeChecked"),
+                        dev,
+                    })
+
+                    vehicle.updateHud({
+                        shouldShowHud,
+                        false,
+                        seatbeltOn,
+                        vehicleSpeed,
+                        vehicle.getFuelLevel(cache.vehicle),
+                        math.ceil(GetEntityCoords(cache.ped).z * 0.5),
+                        shouldShowAltitude,
+                        shouldShowSeatbelt,
+                        radar.isBorderSquare(),
+                        radar.isBorderCircle(),
+                    })
+                else
+                    if wasInVehicle then
+                        wasInVehicle = false
+                        vehicle.hideHud()
+                        seatbeltOn = false
+                        cruiseOn = false
+                        harness = false
+                    end
+
+                    player.updateHud({
+                        shouldShowHud,
+                        playerHealth,
+                        isPlayerDead,
+                        playerArmour,
+                        thirst,
+                        hunger,
+                        stress,
+                        playerVoiceDistance,
+                        playerRadioChannel,
+                        radioTalking,
+                        isPlayerTalking,
+                        isPlayerArmed,
+                        playerOxygen,
+                        playerParachuteState,
+                        -1,
+                        cruiseOn,
+                        nitroActive,
+                        harness,
+                        hp,
+                        -1,
+                        -1,
+                        menuConfig:get("isCineamticModeChecked"),
+                        dev,
+                    })
+
+                    radar.toggleMinimap(not menuConfig:get("isOutMapChecked"))
+                end
             end
-
-            ::skip::
 
             Wait(500)
         end
