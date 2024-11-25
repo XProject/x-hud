@@ -19,5 +19,11 @@
   "open_menu": "Open Menu",
   "check_cash_balance": "Check Cash Balance",
   "check_bank_balance": "Check Bank Balance",
-  "toggle_dev_mode": "Enable/Disable developer Mode"
+  "toggle_dev_mode": "Enable/Disable developer Mode",
+  "attachHarness": "Attaching Race Harness",
+  "removeHarness": "Removing Race Harness",
+  "notInCar": "You're not in a car",
+  "seatbeltOn": "Take your seatbelt off first",
+  "harnessOn": "Take your harness off first",
+  "toggleCommand": "Toggle Seatbelt"
 }

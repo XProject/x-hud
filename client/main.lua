@@ -23,6 +23,7 @@ local utils = require("modules.utility.client")
 local player = require("modules.player.client")
 local framework = require("modules.bridge.main")
 local vehicle = require("modules.vehicle.client")
+local seatbelt = require("modules.seatbelt.client")
 local menuConfig = require("modules.menuConfig.client")
 
 radar.toggleMinimap(false)
@@ -271,12 +272,20 @@ RegisterNetEvent("hud:client:UpdateStress", function(newStress) -- Add this even
     stress = newStress
 end)
 
-RegisterNetEvent("seatbelt:client:ToggleSeatbelt", function() -- Triggered in smallresources
-    seatbeltOn = not seatbeltOn
+RegisterNetEvent("seatbelt:client:ToggleSeatbelt", function(forcedState) -- Triggered in smallresources
+    if forcedState ~= nil then
+        seatbeltOn = forcedState
+    else
+        seatbeltOn = not seatbeltOn
+    end
 end)
 
-RegisterNetEvent("seatbelt:client:ToggleCruise", function() -- Triggered in smallresources
-    cruiseOn = not cruiseOn
+RegisterNetEvent("seatbelt:client:ToggleCruise", function(forcedState) -- Triggered in smallresources
+    if forcedState ~= nil then
+        cruiseOn = forcedState
+    else
+        cruiseOn = not cruiseOn
+    end
 end)
 
 RegisterNetEvent("hud:client:UpdateNitrous", function(hasNitro, nitroLevel, bool)

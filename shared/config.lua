@@ -2,28 +2,39 @@ lib.locale()
 
 Config = {}
 
-Config.Framework = "qb"            -- "esx" or "qb" "ox"
+Config.Framework = "qb"            -- "esx" or "qb"
 
-Config.OpenMenu = "I"              -- https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/
+Config.OpenMenu = "I"              -- keybind to toggle hud settings menu (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/)
 Config.StressChance = 0.1          -- Default: 10% -- Percentage Stress Chance When Shooting (0-1)
-Config.UseMPH = true               -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
+Config.UseMPH = false              -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
 Config.MinimumStress = 50          -- Minimum Stress Level For Screen Shaking
 Config.MinimumSpeedUnbuckled = 50  -- Going Over This Speed Will Cause Stress
 Config.MinimumSpeed = 100          -- Going Over This Speed Will Cause Stress
 Config.DisablePoliceStress = false -- Default: false, If true will disable stress for people with the police job
 
+-- admin
+Config.AdminOnly = false   -- whether admins only are able to change the hud's icons/shapes for all players
+Config.AdminRank = "admin" -- the minimum admin rank that are able to change the hud's icons/shapes for all players (it requires Config.AdminOnly to be "true")
+
 -- vehicle
 Config.EnableEngineToggle = true -- whether this script should handle vehicle engine on/off (this is required to be "true" if you want Config.ToggleEngineKey to work)
-Config.ToggleEngineKey = "G"     -- https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/ (it requires Config.EnableEngineToggle to be "true")
+Config.ToggleEngineKey = "G"     -- keybind to toggle engine (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/) (it requires Config.EnableEngineToggle to be "true")
 
 -- fuel
 Config.FuelScript = "ox_fuel"    -- "ox_fuel" or "LegcyFuel" or "lj-fuel"
 Config.EnableLowFuelAlert = true -- whether this script should handle and send alert on low vehicle fuel (this is required to be "true" if you want Config.LowFuel to work)
 Config.LowFuel = 20              -- minimum fuel level to trigger the low fuel alert to the pasengers which repeats every 1 minute until empty or refuel (it requires Config.EnableLowFuelAlert to be "true")
 
--- admin
-Config.AdminOnly = false   -- whether admins only are able to change the hud's icons/shapes for all players
-Config.AdminRank = "admin" -- the minimum admin rank that are able to change the hud's icons/shapes for all players (it requires Config.AdminOnly to be "true")
+-- seatbelt
+Config.EnableSeatbelt = true               -- whether this script should run its built-in seatbelt handler module
+Config.SeatbeltKeybind = "B"               -- keybind to toggle seatbelt (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/) (it requires Config.EnableSeatbelt to be "true")
+Config.MinimumUnbuckledSpeedToEject = 20.0 -- minimum speed to fly through windscreen when seatbelt is off (it requires Config.EnableSeatbelt to be "true")
+Config.MinimumBuckledSpeedToEject = 160.0  -- minimum speed to fly through windscreen when seatbelt is on (it requires Config.EnableSeatbelt to be "true")
+Config.Harness = {
+    DisableFlyingThroughWindscreen = true, -- disables flying through windscreen when harness is on (it requires Config.EnableSeatbelt to be "true")
+    MinimumSpeed = 200.0                   -- if the above (Config.Harness.DisableFlyingThroughWindscreen) is set to false, minimum speed to fly through windscreen when harness is on (it requires Config.EnableSeatbelt to be "true")
+}
+
 
 -- Stress
 Config.WhitelistedWeaponArmed = { -- weapons specifically whitelisted to not show armed mode
