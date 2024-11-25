@@ -5,7 +5,6 @@ Config = {}
 Config.Framework = "qb"            -- "esx" or "qb"
 
 Config.OpenMenu = "I"              -- keybind to toggle hud settings menu (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/)
-Config.StressChance = 0.1          -- Default: 10% -- Percentage Stress Chance When Shooting (0-1)
 Config.UseMPH = false              -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
 Config.DisablePoliceStress = false -- Default: false, If true will disable stress for people with the police job
 
@@ -40,6 +39,8 @@ Config.MinimumStressForEffects = 50           -- minimum stress level for screen
 Config.EnableStressOnSpeeding = true          -- whether this script should run its built-in vehicle speed monitoring to increase stress periodically (it requires Config.EnableSeatbelt to be "true")
 Config.MinimumUnbuckledSpeedToGainStress = 50 -- going over this speed while having seatbelt unbuckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
 Config.MinimumBuckledSpeedToGainStress = 180  -- going over this speed even while having seatbelt buckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
+Config.GainStressWhileShooting = true         -- whether this script should increase player stress while shooting
+Config.StressWhileShootingChance = 1.0        -- chance to gain stress while shooting (accepted valid values are any number between 0 and 1 (%0 and %100)) (it requires Config.GainStressWhileShooting to be "true")
 
 -- Stress
 Config.WhitelistedWeaponArmed = { -- weapons specifically whitelisted to not show armed mode

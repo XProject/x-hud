@@ -522,54 +522,9 @@ end
 
 -- Money HUD
 RegisterNetEvent("hud:client:ShowAccounts", function(type, amount)
-    if type == "cash" then
-        SendNUIMessage({
-            action = "show",
-            type = "cash",
-            cash = amount
-        })
-    else
-        SendNUIMessage({
-            action = "show",
-            type = "bank",
-            bank = amount
-        })
-    end
-end)
+    if type ~= "cash" and type ~= "bank" then return end
 
-
-local function IsWhitelistedWeaponStress(weapon)
-    if weapon then
-        for _, v in pairs(Config.WhitelistedWeaponStress) do
-            if weapon == v then
-                return true
-            end
-        end
-    end
-    return false
-end
-
-CreateThread(function() -- Shooting
-    while true do
-        if LocalPlayer.state.isLoggedIn then
-            local ped = PlayerPedId()
-            local weapon = GetSelectedPedWeapon(ped)
-            if weapon ~= `WEAPON_UNARMED` then
-                if IsPedShooting(ped) and not IsWhitelistedWeaponStress(weapon) then
-                    if math.random() < Config.StressChance then
-                        TriggerServerEvent("hud:server:GainStress", math.random(1, 3))
-                    end
-                    Wait(100)
-                else
-                    Wait(500)
-                end
-            else
-                Wait(1000)
-            end
-        else
-            Wait(1000)
-        end
-    end
+    SendNUIMessage({ action = "show", type = type, bank = amount })
 end)
 
 -- Minimap update

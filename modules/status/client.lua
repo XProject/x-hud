@@ -22,38 +22,40 @@ function status.getStress()
     return framework.getStress()
 end
 
-local isSpeedMonitoringThreadActive = false
+if Config.EnableStressOnSpeeding and Config.EnableSeatbelt then
+    local isSpeedMonitoringThreadActive = false
 
-local function speedMonitoringThread()
-    if isSpeedMonitoringThreadActive or not Config.EnableStressOnSpeeding or not Config.EnableSeatbelt or not cache.vehicle then return end
+    local function speedMonitoringThread()
+        if isSpeedMonitoringThreadActive or not cache.vehicle then return end
 
-    isSpeedMonitoringThreadActive = true
+        isSpeedMonitoringThreadActive = true
 
-    CreateThread(function()
-        while cache.vehicle do
-            local vehicleClass = GetVehicleClass(cache.vehicle)
-            local canVehicleGainStress = Config.VehClassStress[tostring(vehicleClass)]
+        CreateThread(function()
+            while cache.vehicle do
+                local vehicleClass = GetVehicleClass(cache.vehicle)
+                local canVehicleGainStress = Config.VehClassStress[tostring(vehicleClass)]
 
-            if canVehicleGainStress then
-                local speed = GetEntitySpeed(cache.vehicle)
-                local stressSpeed = (playerState.seatbelt or playerState.harness) and minSpeeds.buckled or minSpeeds.unbuckled
+                if canVehicleGainStress then
+                    local speed = GetEntitySpeed(cache.vehicle)
+                    local stressSpeed = (playerState.seatbelt or playerState.harness) and minSpeeds.buckled or minSpeeds.unbuckled
 
-                if speed >= stressSpeed then
-                    TriggerServerEvent("hud:server:GainStress", math.random(1, 3))
+                    if speed >= stressSpeed then
+                        TriggerServerEvent("hud:server:GainStress", math.random(1, 3))
+                    end
                 end
+
+                Wait(15000)
             end
 
-            Wait(15000)
-        end
+            isSpeedMonitoringThreadActive = false
+        end)
+    end
 
-        isSpeedMonitoringThreadActive = false
+    AddEventHandler("ox_lib:cache:vehicle", function()
+        Wait(500)
+        speedMonitoringThread()
     end)
 end
-
-AddEventHandler("ox_lib:cache:vehicle", function()
-    Wait(500)
-    speedMonitoringThread()
-end)
 
 if Config.EnableStressEffects then
     ---@param stressValue number
@@ -113,6 +115,54 @@ if Config.EnableStressEffects then
             end
         end
     end)
+end
+
+if Config.GainStressWhileShooting then
+    ---@param weaponHash number
+    ---@return boolean
+    local function isWeaponWhitelistedForStress(weaponHash)
+        for i = 1, #Config.WhitelistedWeaponStress do
+            if weaponHash == Config.WhitelistedWeaponStress[i] then
+                return true
+            end
+        end
+
+        return false
+    end
+
+    local isMonitorShootingThreadActive = false
+    local function monitorShootingThread()
+        if isMonitorShootingThreadActive or not cache.weapon then return end
+
+        isMonitorShootingThreadActive = true
+
+        CreateThread(function()
+            while cache.weapon do
+                if cache.weapon ~= `WEAPON_UNARMED` and isWeaponWhitelistedForStress(cache.weapon) then
+                    while IsPlayerFreeAiming(cache.playerId) do
+                        if IsPedShooting(cache.ped) then
+                            if math.random() < Config.StressWhileShootingChance then
+                                TriggerServerEvent("hud:server:GainStress", math.random(1, 3))
+                            end
+
+                            Wait(1000)
+                        end
+
+                        Wait(0)
+                    end
+                end
+
+                Wait(1000)
+            end
+
+            isMonitorShootingThreadActive = false
+        end)
+
+        AddEventHandler("ox_lib:cache:weapon", function()
+            Wait(500)
+            monitorShootingThread()
+        end)
+    end
 end
 
 return status
