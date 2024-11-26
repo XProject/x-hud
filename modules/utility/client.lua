@@ -39,4 +39,12 @@ function utils.showNotification(data)
     })
 end
 
+---@param number number
+---@param numDecimalPlaces? number
+---@return number
+function utils.round(number, numDecimalPlaces)
+    local multiplier = 10 ^ (numDecimalPlaces or 0)
+    return math.floor(number + 0.5 * multiplier)
+end
+
 return utils

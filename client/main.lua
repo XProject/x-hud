@@ -371,6 +371,7 @@ local function hudUpdateThread()
             if not shouldShowHud then
                 player.hideHud()
                 vehicle.hideHud()
+                compass.hideHud()
             else
                 -- player weapon
                 local isPlayerArmed = false
@@ -381,6 +382,9 @@ local function hudUpdateThread()
                         isPlayerArmed = true
                     end
                 end
+
+                -- player coords
+                local playerCoords = GetEntityCoords(cache.ped)
 
                 -- player health
                 local playerHealth = GetEntityHealth(cache.ped) - 100
@@ -411,6 +415,27 @@ local function hudUpdateThread()
 
                 -- player parachute
                 local playerParachuteState = GetPedParachuteState(cache.ped)
+
+                -- compass
+                local isCompassEnabled = menuConfig:get("isCompassShowChecked")
+                local crossroads = compass.getCrossroadsAtCoords(playerCoords)
+
+                if isCompassEnabled then
+                    local compassHeading = "0"
+
+                    if menuConfig:get("isCompassFollowChecked") then
+                        compassHeading = tostring(utils.round(360.0 - ((GetGameplayCamRot(0).z + 360.0) % 360.0)))
+                    else
+                        compassHeading = tostring(utils.round(360.0 - GetEntityHeading(cache.ped)))
+                    end
+
+                    if compassHeading == "360" then compassHeading = "0" end
+
+                    SendNUIMessage({
+                        action = "update",
+                        value = compassHeading
+                    })
+                end
 
                 if cache.vehicle and not IsThisModelABicycle(cache.vehicle) then
                     if not wasInVehicle then
@@ -455,11 +480,21 @@ local function hudUpdateThread()
                         seatbeltOn,
                         vehicleSpeed,
                         vehicle.getFuelLevel(cache.vehicle),
-                        math.ceil(GetEntityCoords(cache.ped).z * 0.5),
+                        math.ceil(playerCoords.z * 0.5),
                         shouldShowAltitude,
                         shouldShowSeatbelt,
                         radar.isBorderSquare(),
                         radar.isBorderCircle(),
+                    })
+
+                    compass.updateHud({
+                        isCompassEnabled, --[[we can also set this to "true" to be able to modify enable/disable componenets of compass separately (e.g. having street name enabled while having directional compass disabled...)]]
+                        crossroads[1],
+                        crossroads[2],
+                        isCompassEnabled,
+                        menuConfig:get("isShowStreetsChecked"),
+                        menuConfig:get("isPointerShowChecked"),
+                        menuConfig:get("isDegreesShowChecked"),
                     })
                 else
                     if wasInVehicle then
@@ -496,6 +531,20 @@ local function hudUpdateThread()
                         dev,
                     })
 
+                    if not isCompassEnabled or menuConfig:get("isOutCompassChecked") then
+                        compass.hideHud()
+                    else
+                        compass.updateHud({
+                            isCompassEnabled, --[[we can also set this to "true" to be able to modify enable/disable componenets of compass separately (e.g. having street name enabled while having directional compass disabled...)]]
+                            crossroads[1],
+                            crossroads[2],
+                            isCompassEnabled,
+                            menuConfig:get("isShowStreetsChecked"),
+                            menuConfig:get("isPointerShowChecked"),
+                            menuConfig:get("isDegreesShowChecked"),
+                        })
+                    end
+
                     radar.toggleMinimap(not menuConfig:get("isOutMapChecked"))
                 end
             end
@@ -505,6 +554,7 @@ local function hudUpdateThread()
 
         player.hideHud()
         vehicle.hideHud()
+        compass.hideHud()
         radar.toggleMinimap(false)
         isHudUpdateThreadActive = false
     end)
@@ -533,141 +583,5 @@ CreateThread(function()
         SetRadarBigmapEnabled(false, false)
         SetRadarZoom(1100)
         Wait(1000)
-    end
-end)
-
--- Compass
-function round(num, numDecimalPlaces)
-    local mult = 10 ^ (numDecimalPlaces or 0)
-    return math.floor(num + 0.5 * mult)
-end
-
-local prevBaseplateStats = { nil, nil, nil, nil, nil, nil, nil }
-
-local function updateBaseplateHud(data)
-    local shouldUpdate = false
-    for k, v in pairs(data) do
-        if prevBaseplateStats[k] ~= v then
-            shouldUpdate = true
-            break
-        end
-    end
-    prevBaseplateStats = data
-    if shouldUpdate then
-        SendNUIMessage({
-            action = "baseplate",
-            topic = "compassupdate",
-            show = data[1],
-            street1 = data[2],
-            street2 = data[3],
-            showCompass = data[4],
-            showStreets = data[5],
-            showPointer = data[6],
-            showDegrees = data[7],
-        })
-    end
-end
-
-local lastCrossroadUpdate = 0
-local lastCrossroadCheck = {}
-
-local function getCrossroads(player)
-    local updateTick = GetGameTimer()
-    if updateTick - lastCrossroadUpdate > 5000 then
-        local pos = GetEntityCoords(player)
-        local street1, street2 = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
-        lastCrossroadUpdate = updateTick
-        lastCrossroadCheck = { GetStreetNameFromHashKey(street1), GetStreetNameFromHashKey(street2) }
-    end
-    return lastCrossroadCheck
-end
-
--- Compass Update loop
-
-CreateThread(function()
-    local heading, lastHeading = "0", "1"
-    local lastIsOutCompassCheck = menuConfig:get("isOutCompassChecked")
-    local lastInVehicle = false
-    while true do
-        if LocalPlayer.state.isLoggedIn then
-            Wait(400)
-            local show = true
-            local camRot = GetGameplayCamRot(0)
-
-            if menuConfig:get("isCompassFollowChecked") then
-                heading = tostring(round(360.0 - ((camRot.z + 360.0) % 360.0)))
-            else
-                heading = tostring(round(360.0 - GetEntityHeading(cache.ped)))
-            end
-
-            if heading == "360" then
-                heading = "0"
-            end
-
-            local playerInVehcile = IsPedInAnyVehicle(cache.ped, false)
-
-            if heading ~= lastHeading or lastInVehicle ~= playerInVehcile then
-                if playerInVehcile then
-                    local crossroads = getCrossroads(cache.ped)
-                    SendNUIMessage({
-                        action = "update",
-                        value = heading
-                    })
-                    updateBaseplateHud({
-                        show,
-                        crossroads[1],
-                        crossroads[2],
-                        menuConfig:get("isCompassShowChecked"),
-                        menuConfig:get("isShowStreetsChecked"),
-                        menuConfig:get("isPointerShowChecked"),
-                        menuConfig:get("isDegreesShowChecked"),
-                    })
-                    lastInVehicle = true
-                else
-                    if not menuConfig:get("isOutCompassChecked") then
-                        SendNUIMessage({
-                            action = "update",
-                            value = heading
-                        })
-                        SendNUIMessage({
-                            action = "baseplate",
-                            topic = "opencompass",
-                            show = true,
-                            showCompass = true,
-                        })
-                        prevBaseplateStats[1] = true
-                        prevBaseplateStats[4] = true
-                    else
-                        SendNUIMessage({
-                            action = "baseplate",
-                            topic = "closecompass",
-                            show = false,
-                        })
-                        prevBaseplateStats[1] = false
-                    end
-                    lastInVehicle = false
-                end
-            end
-            lastHeading = heading
-            if lastIsOutCompassCheck ~= menuConfig:get("isOutCompassChecked") and not IsPedInAnyVehicle(cache.ped, false) then
-                if not menuConfig:get("isOutCompassChecked") then
-                    SendNUIMessage({
-                        action = "baseplate",
-                        topic = "opencompass",
-                        show = true,
-                        showCompass = true,
-                    })
-                else
-                    SendNUIMessage({
-                        action = "baseplate",
-                        topic = "closecompass",
-                        show = false,
-                    })
-                end
-                lastIsOutCompassCheck = menuConfig:get("isOutCompassChecked")
-            end
-        else
-            Wait(1000)
-        end
     end
 end)
