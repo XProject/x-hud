@@ -1,20 +1,14 @@
 local framework = {}
-local QBCore = exports["qb-core"]:GetCoreObject()
-QBCore = {
-    Functions = {
-        GetPlayerData = QBCore.Functions.GetPlayerData
-    }
-}
 local playerState = LocalPlayer.state
-local playerData = QBCore.Functions.GetPlayerData() or {}
+local playerData = exports["qbx_core"]:GetPlayerData() or {}
 local statuses = {
-    hunger = playerData.metadata and playerData.metadata.hunger or 100,
-    thirst = playerData.metadata and playerData.metadata.thirst or 100,
-    stress = playerData.metadata and playerData.metadata.stress or 0
+    hunger = playerState.hunger or 100,
+    thirst = playerState.thirst or 100,
+    stress = playerState.stress or 0
 }
 
 RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()
-    playerData = QBCore.Functions.GetPlayerData()
+    playerData = exports["qbx_core"]:GetPlayerData()
 
     framework.playerLoaded()
 end)
@@ -41,13 +35,16 @@ RegisterNetEvent("hud:client:OnMoneyChange", function(type, amount, isMinus)
     exports[cache.resource]:showMoney(type, amount, cashAmount, bankAmount, isMinus)
 end)
 
-RegisterNetEvent("hud:client:UpdateNeeds", function(newHunger, newThirst)
-    statuses.hunger = newHunger
-    statuses.thirst = newThirst
+AddStateBagChangeHandler("hunger", ("player:%s"):format(serverId), function(_, _, value)
+    statuses.hunger = value
 end)
 
-RegisterNetEvent("hud:client:UpdateStress", function(newStress)
-    statuses.stress = newStress
+AddStateBagChangeHandler("thirst", ("player:%s"):format(serverId), function(_, _, value)
+    statuses.thirst = value
+end)
+
+AddStateBagChangeHandler("stress", ("player:%s"):format(serverId), function(_, _, value)
+    statuses.stress = value
 end)
 
 ---@return boolean

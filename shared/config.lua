@@ -2,7 +2,7 @@ lib.locale()
 
 Config = {}
 
-Config.Framework = "qb" -- "esx" or "qb"
+Config.Framework = "qbx" -- "esx" or "qb" or "qbx"
 
 Config.OpenMenu = "I"   -- keybind to toggle hud settings menu (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/)
 Config.UseMPH = true    -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
