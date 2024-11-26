@@ -527,11 +527,11 @@ RegisterNetEvent("hud:client:ShowAccounts", function(type, amount)
     SendNUIMessage({ action = "show", type = type, bank = amount })
 end)
 
--- Minimap update
+-- minimap update
 CreateThread(function()
     while true do
         SetRadarBigmapEnabled(false, false)
-        SetRadarZoom(1000)
+        SetRadarZoom(1100)
         Wait(1000)
     end
 end)
