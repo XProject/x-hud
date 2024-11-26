@@ -574,7 +574,7 @@ end
 RegisterNetEvent("hud:client:ShowAccounts", function(type, amount)
     if type ~= "cash" and type ~= "bank" then return end
 
-    SendNUIMessage({ action = "show", type = type, bank = amount })
+    SendNUIMessage({ action = "show", type = type, [type] = amount })
 end)
 
 -- minimap update

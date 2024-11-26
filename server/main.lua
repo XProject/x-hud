@@ -1,79 +1,49 @@
 local seatbelt = require("modules.seatbelt.server")
-local QBCore = exports["qb-core"]:GetCoreObject()
-local ResetStress = false
 
 local framework = lib.load("modules.bridge.main")
 
-QBCore.Commands.Add("cash", locale("check_cash_balance"), {}, false, function(source, args)
-    local Player = QBCore.Functions.GetPlayer(source)
-    local cashamount = Player.PlayerData.money.cash
-    TriggerClientEvent("hud:client:ShowAccounts", source, "cash", cashamount)
+lib.addCommand("cash", {
+    help = locale("check_cash_balance")
+}, function(source)
+    local balance = framework.getCashBalance(source)
+
+    TriggerClientEvent("hud:client:ShowAccounts", source, "cash", balance)
 end)
 
-QBCore.Commands.Add("bank", locale("check_bank_balance"), {}, false, function(source, args)
-    local Player = QBCore.Functions.GetPlayer(source)
-    local bankamount = Player.PlayerData.money.bank
-    TriggerClientEvent("hud:client:ShowAccounts", source, "bank", bankamount)
+lib.addCommand("bank", {
+    help = locale("check_bank_balance")
+}, function(source)
+    local balance = framework.getBankBalance(source)
+
+    TriggerClientEvent("hud:client:ShowAccounts", source, "bank", balance)
 end)
 
-QBCore.Commands.Add("dev", locale("toggle_dev_mode"), {}, false, function(source, args)
+lib.addCommand("dev", {
+    help = locale("toggle_dev_mode"),
+    restricted = ("group.%s"):format(Config.AdminRank)
+}, function(source)
     TriggerClientEvent("qb-admin:client:ToggleDevmode", source)
-end, "admin")
+end)
 
 RegisterNetEvent("hud:server:GainStress", function(amount)
-    local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-    local newStress
-    if not Player or (Config.DisablePoliceStress and Player.PlayerData.job.name == "police") then return end
-    if not ResetStress then
-        if not Player.PlayerData.metadata["stress"] then
-            Player.PlayerData.metadata["stress"] = 0
-        end
-        newStress = Player.PlayerData.metadata["stress"] + amount
-        if newStress <= 0 then newStress = 0 end
-    else
-        newStress = 0
+    if framework.addStressToPlayer(source, amount) then
+        TriggerClientEvent("ox_lib:notify", source, { description = locale("stress_gain"), type = "error" })
     end
-    if newStress > 100 then
-        newStress = 100
-    end
-    Player.Functions.SetMetaData("stress", newStress)
-    TriggerClientEvent("hud:client:UpdateStress", src, newStress)
-    TriggerClientEvent("QBCore:Notify", src, locale("stress_gain"), "error", 1500)
 end)
 
 RegisterNetEvent("hud:server:RelieveStress", function(amount)
-    local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-    local newStress
-    if not Player then return end
-    if not ResetStress then
-        if not Player.PlayerData.metadata["stress"] then
-            Player.PlayerData.metadata["stress"] = 0
-        end
-        newStress = Player.PlayerData.metadata["stress"] - amount
-        if newStress <= 0 then newStress = 0 end
-    else
-        newStress = 0
+    if framework.removeStressFromPlayer(source, amount) then
+        TriggerClientEvent("ox_lib:notify", source, { description = locale("stress_removed"), type = "inform" })
     end
-    if newStress > 100 then
-        newStress = 100
-    end
-    Player.Functions.SetMetaData("stress", newStress)
-    TriggerClientEvent("hud:client:UpdateStress", src, newStress)
-    TriggerClientEvent("QBCore:Notify", src, locale("stress_removed"))
 end)
 
 RegisterNetEvent("hud:server:saveUIData", function(data)
     local src = source
     -- Check Permissions
-    if not QBCore.Functions.HasPermission(src, "admin") and not IsPlayerAceAllowed(src, "command") then
-        return
-    end
+    if not framework.hasAdminPermission(src, Config.AdminRank) then return end
 
     -- Ensure a player is invoking this net event
-    local Player = QBCore.Functions.GetPlayer(src)
-    if not Player then return end
+    if not framework.getPlayer(src) then return end
 
     local uiConfigData = {}
     uiConfigData.icons = {}
