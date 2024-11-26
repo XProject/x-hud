@@ -9,7 +9,8 @@ description "HUD"
 
 shared_scripts {
     "@ox_lib/init.lua",
-    "shared/*.lua"
+    "shared/*.lua",
+    "uiconfig.lua"
 }
 
 server_scripts {
