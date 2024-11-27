@@ -35,15 +35,15 @@ RegisterNetEvent("hud:client:OnMoneyChange", function(type, amount, isMinus)
     exports[cache.resource]:showMoney(type, amount, cashAmount, bankAmount, isMinus)
 end)
 
-AddStateBagChangeHandler("hunger", ("player:%s"):format(serverId), function(_, _, value)
+AddStateBagChangeHandler("hunger", ("player:%s"):format(cache.serverId), function(_, _, value)
     statuses.hunger = value
 end)
 
-AddStateBagChangeHandler("thirst", ("player:%s"):format(serverId), function(_, _, value)
+AddStateBagChangeHandler("thirst", ("player:%s"):format(cache.serverId), function(_, _, value)
     statuses.thirst = value
 end)
 
-AddStateBagChangeHandler("stress", ("player:%s"):format(serverId), function(_, _, value)
+AddStateBagChangeHandler("stress", ("player:%s"):format(cache.serverId), function(_, _, value)
     statuses.stress = value
 end)
 

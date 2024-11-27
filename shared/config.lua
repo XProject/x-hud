@@ -4,8 +4,8 @@ Config = {}
 
 Config.Framework = "qbx" -- "esx" or "qb" or "qbx"
 
-Config.OpenMenu = "I"   -- keybind to toggle hud settings menu (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/)
-Config.UseMPH = true    -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
+Config.OpenMenu = "I"    -- keybind to toggle hud settings menu (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/)
+Config.UseMPH = true     -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
 
 -- admin
 Config.AdminOnly = false   -- whether admins only are able to change the hud's icons/shapes for all players
@@ -39,7 +39,7 @@ Config.EnableStressOnSpeeding = true          -- whether this script should run 
 Config.MinimumUnbuckledSpeedToGainStress = 50 -- going over this speed while having seatbelt unbuckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
 Config.MinimumBuckledSpeedToGainStress = 180  -- going over this speed even while having seatbelt buckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
 Config.GainStressWhileShooting = true         -- whether this script should increase player stress while shooting
-Config.StressWhileShootingChance = 0.1        -- chance to gain stress while shooting (accepted valid values are any number between 0 and 1 (%0 and %100)) (it requires Config.GainStressWhileShooting to be "true")
+Config.StressWhileShootingChance = 0.2        -- chance to gain stress while shooting (accepted valid values are any number between 0 and 1 (%0 and %100)) (it requires Config.GainStressWhileShooting to be "true")
 Config.WhitelistedGroupsToGainStress = {      -- any job/group that is listed below will be whitelisted from gaining stress from this script (not buckling the seatbelt, speeding, and shooting)
     -- ["GROUP_NAME"] = MINIMUM_GRADE_TO_BE_WHITELISTED
     ["police"] = 0
