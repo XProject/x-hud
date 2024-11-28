@@ -2,10 +2,10 @@ lib.locale()
 
 Config = {}
 
-Config.Framework = "qbx" -- "esx" or "qb" or "qbx"
+Config.Framework = "esx-ox" -- "esx-ox" or "qb" or "qbx"
 
-Config.OpenMenu = "I"    -- keybind to toggle hud settings menu (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/)
-Config.UseMPH = true     -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
+Config.OpenMenu = "I"       -- keybind to toggle hud settings menu (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/)
+Config.UseMPH = true        -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
 
 -- admin
 Config.AdminOnly = false   -- whether admins only are able to change the hud's icons/shapes for all players
@@ -33,7 +33,7 @@ Config.Harness = {
 }
 
 -- stress status
-Config.EnableStressEffects = true             -- whether this script should run its built-in effects on stress increasing
+Config.EnableStressEffects = false            -- whether this script should run its built-in effects on stress increasing
 Config.MinimumStressForEffects = 50           -- minimum stress level for screen blurring effects to take place (it requires Config.EnableStressEffects to be "true")
 Config.EnableStressOnSpeeding = true          -- whether this script should run its built-in vehicle speed monitoring to increase stress periodically (it requires Config.EnableSeatbelt to be "true")
 Config.MinimumUnbuckledSpeedToGainStress = 50 -- going over this speed while having seatbelt unbuckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
