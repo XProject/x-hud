@@ -47,13 +47,39 @@ eventHandler("esx:setPlayerData", function(key, val, last)
 
     if key ~= "accounts" then return end
 
-    ---TODO
-    -- if amount == 0 then return end
+    ---TODO: technically the account index should remain the same, meaning we might be able to use 1 loop only instead of 2!
+    local currentCash, currentBank
+    local previousCash, previousBank
 
-    -- local cashAmount = playerData.money["cash"]
-    -- local bankAmount = playerData.money["bank"]
+    for i = 1, #val do
+        if val[i].name == "money" then
+            currentCash = last[i].money
+        elseif last[i].name == "bank" then
+            currentBank = last[i].money
+        end
+    end
 
-    -- exports[cache.resource]:showMoney(type, amount, cashAmount, bankAmount, isMinus)
+    for i = 1, #last do
+        if last[i].name == "money" then
+            previousCash = last[i].money
+        elseif last[i].name == "bank" then
+            previousBank = last[i].money
+        end
+    end
+
+    if not currentCash or not currentBank or not previousCash or not previousBank then return end
+
+    if currentCash ~= previousCash then
+        local isCurrentHigher = currentCash > previousCash
+        local difference = isCurrentHigher and (currentCash - previousCash) or (previousCash - currentCash)
+
+        return exports[cache.resource]:showMoney("cash", difference, currentCash, currentBank, isCurrentHigher)
+    elseif currentBank ~= previousBank then
+        local isCurrentHigher = currentBank > previousBank
+        local difference = isCurrentHigher and (currentBank - previousBank) or (previousBank - currentBank)
+
+        return exports[cache.resource]:showMoney("bank", difference, currentCash, currentBank, isCurrentHigher)
+    end
 end)
 
 AddStateBagChangeHandler("hunger", ("player:%s"):format(cache.serverId), function(_, _, value)
