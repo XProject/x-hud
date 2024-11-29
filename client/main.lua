@@ -438,10 +438,6 @@ local function hudUpdateThread()
                 end
 
                 if cache.vehicle and not IsThisModelABicycle(cache.vehicle) then
-                    if not wasInVehicle then
-                        radar.toggleMinimap(menuConfig:get("isMapEnabledChecked"))
-                    end
-
                     wasInVehicle = true
                     local shouldShowAltitude = IsPedInAnyHeli(cache.ped) or IsPedInAnyPlane(cache.ped) or false
                     local shouldShowSeatbelt = not shouldShowAltitude
@@ -496,6 +492,8 @@ local function hudUpdateThread()
                         menuConfig:get("isPointerShowChecked"),
                         menuConfig:get("isDegreesShowChecked"),
                     })
+
+                    radar.toggleMinimap(menuConfig:get("isMapEnabledChecked"))
                 else
                     if wasInVehicle then
                         wasInVehicle = false
@@ -545,7 +543,7 @@ local function hudUpdateThread()
                         })
                     end
 
-                    radar.toggleMinimap(not menuConfig:get("isOutMapChecked"))
+                    radar.toggleMinimap(menuConfig:get("isMapEnabledChecked") and not menuConfig:get("isOutMapChecked"))
                 end
             end
 
