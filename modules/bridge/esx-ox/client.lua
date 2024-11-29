@@ -53,9 +53,9 @@ eventHandler("esx:setPlayerData", function(key, val, last)
 
     for i = 1, #val do
         if val[i].name == "money" then
-            currentCash = last[i].money
+            currentCash = val[i].money
         elseif last[i].name == "bank" then
-            currentBank = last[i].money
+            currentBank = val[i].money
         end
     end
 
@@ -73,12 +73,12 @@ eventHandler("esx:setPlayerData", function(key, val, last)
         local isCurrentHigher = currentCash > previousCash
         local difference = isCurrentHigher and (currentCash - previousCash) or (previousCash - currentCash)
 
-        return exports[cache.resource]:showMoney("cash", difference, currentCash, currentBank, isCurrentHigher)
+        return exports[cache.resource]:showMoney("cash", difference, currentCash, currentBank, not isCurrentHigher)
     elseif currentBank ~= previousBank then
         local isCurrentHigher = currentBank > previousBank
         local difference = isCurrentHigher and (currentBank - previousBank) or (previousBank - currentBank)
 
-        return exports[cache.resource]:showMoney("bank", difference, currentCash, currentBank, isCurrentHigher)
+        return exports[cache.resource]:showMoney("bank", difference, currentCash, currentBank, not isCurrentHigher)
     end
 end)
 
