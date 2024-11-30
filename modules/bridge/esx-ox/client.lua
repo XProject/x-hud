@@ -1,11 +1,6 @@
 local framework = {}
 local playerState = LocalPlayer.state
-local ESX = exports["es_extended"]:getSharedObject()
-ESX = {
-    GetPlayerData = ESX.GetPlayerData,
-    PlayerData = ESX.GetPlayerData(),
-    PlayerLoaded = ESX.IsPlayerLoaded()
-}
+local ESX = lib.load("@es_extended.imports")
 local statuses = {
     hunger = playerState.hunger or 100,
     thirst = playerState.thirst or 100,
@@ -28,24 +23,20 @@ local function eventHandler(eventName, cb)
     end)
 end
 
-eventHandler("esx:playerLoaded", function(playerData)
-    ESX.PlayerData = playerData
-    ESX.PlayerLoaded = true
+eventHandler("esx:playerLoaded", function() framework.playerLoaded() end)
+eventHandler("esx:onPlayerLogout", function() framework.playerUnloaded() end)
 
-    framework.playerLoaded()
-end)
+---@alias accountData { index: integer, name: string, money: number, label: string, round: boolean }
 
-eventHandler("esx:onPlayerLogout", function()
-    playerData = {}
-    ESX.PlayerLoaded = false
-
-    framework.playerUnloaded()
-end)
-
-eventHandler("esx:setPlayerData", function(key, val, last)
+---@param key string
+---@param val any
+---@param last any
+OnPlayerData = function(key, val, last) -- triggered in es_extended/imports.lua
     ESX.PlayerData[key] = val
 
     if key ~= "accounts" then return end
+    ---@cast val accountData[]
+    ---@cast last accountData[]
 
     ---TODO: technically the account index should remain the same, meaning we might be able to use 1 loop only instead of 2!
     local currentCash, currentBank
@@ -80,7 +71,7 @@ eventHandler("esx:setPlayerData", function(key, val, last)
 
         return exports[cache.resource]:showMoney("bank", difference, currentCash, currentBank, not isCurrentHigher)
     end
-end)
+end
 
 AddStateBagChangeHandler("hunger", ("player:%s"):format(cache.serverId), function(_, _, value)
     statuses.hunger = value
@@ -101,7 +92,7 @@ end
 
 ---@return boolean
 function framework.isPlayerDead()
-    return ESX.PlayerData?.dead or false
+    return ESX.PlayerData.dead or false
 end
 
 ---@return number

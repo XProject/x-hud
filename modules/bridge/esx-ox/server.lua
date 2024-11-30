@@ -1,8 +1,5 @@
 local framework = {}
-local ESX = exports["es_extended"]:getSharedObject()
-ESX = {
-    GetPlayerFromId = ESX.GetPlayerFromId
-}
+local ESX = lib.load("@es_extended.imports")
 
 ---@param playerId number
 ---@return table?
