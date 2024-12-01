@@ -21,26 +21,24 @@ Config.EnableLowFuelAlert = true -- whether this script should handle and send a
 Config.LowFuel = 20              -- minimum fuel level to trigger the low fuel alert to the pasengers which repeats every 1 minute until empty or refuel (it requires Config.EnableLowFuelAlert to be "true")
 
 -- seatbelt
-Config.EnableSeatbelt = true               -- whether this script should run its built-in seatbelt handler module
-Config.SeatbeltKeybind = "B"               -- keybind to toggle seatbelt (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/) (it requires Config.EnableSeatbelt to be "true")
-Config.SeatbeltUnbuckledAlert = true       -- whether this script should handle and send sound alert on unbuckled seatbelt (it requires Config.EnableSeatbelt to be "true")
-Config.SeatbeltUnbuckledAlertSpeed = 10.0  -- minimum vehicle speed to trigger the alert if seatbelt is not buckled in (it requires Config.SeatbeltUnbuckledAlert to be "true")
-Config.MinimumUnbuckledSpeedToEject = 20.0 -- minimum speed to fly through windscreen when seatbelt is off (it requires Config.EnableSeatbelt to be "true")
-Config.MinimumBuckledSpeedToEject = 160.0  -- minimum speed to fly through windscreen when seatbelt is on (it requires Config.EnableSeatbelt to be "true")
-Config.Harness = {
-    DisableFlyingThroughWindscreen = true, -- disables flying through windscreen when harness is on (it requires Config.EnableSeatbelt to be "true")
-    MinimumSpeed = 200.0                   -- if the above (Config.Harness.DisableFlyingThroughWindscreen) is set to false, minimum speed to fly through windscreen when harness is on (it requires Config.EnableSeatbelt to be "true")
-}
+Config.EnableSeatbelt = true                      -- whether this script should run its built-in seatbelt handler module
+Config.SeatbeltKeybind = "B"                      -- keybind to toggle seatbelt (https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/) (it requires Config.EnableSeatbelt to be "true")
+Config.SeatbeltUnbuckledAlert = true              -- whether this script should handle and send sound alert on unbuckled seatbelt (it requires Config.EnableSeatbelt to be "true")
+Config.SeatbeltUnbuckledAlertSpeed = 10.0         -- minimum vehicle speed to trigger the alert if seatbelt is not buckled in (it requires Config.SeatbeltUnbuckledAlert to be "true")
+Config.MinimumUnbuckledSpeedToEject = 40.0        -- minimum speed to fly through windscreen when seatbelt is off (it requires Config.EnableSeatbelt to be "true")
+Config.MinimumBuckledSpeedToEject = 120.0         -- minimum speed to fly through windscreen when seatbelt is on (it requires Config.EnableSeatbelt to be "true")
+Config.MinimumHarnessBuckledSpeedToEject = 1000.0 -- minimum speed to fly through windscreen when harness is on. you can set it to a high value to avoid ejection on harness (it requires Config.EnableSeatbelt to be "true")
+
 
 -- stress status
-Config.EnableStressEffects = false            -- whether this script should run its built-in effects on stress increasing
-Config.MinimumStressForEffects = 50           -- minimum stress level for screen blurring effects to take place (it requires Config.EnableStressEffects to be "true")
-Config.EnableStressOnSpeeding = true          -- whether this script should run its built-in vehicle speed monitoring to increase stress periodically (it requires Config.EnableSeatbelt to be "true")
-Config.MinimumUnbuckledSpeedToGainStress = 50 -- going over this speed while having seatbelt unbuckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
-Config.MinimumBuckledSpeedToGainStress = 180  -- going over this speed even while having seatbelt buckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
-Config.GainStressWhileShooting = true         -- whether this script should increase player stress while shooting
-Config.StressWhileShootingChance = 0.2        -- chance to gain stress while shooting (accepted valid values are any number between 0 and 1 (%0 and %100)) (it requires Config.GainStressWhileShooting to be "true")
-Config.WhitelistedGroupsToGainStress = {      -- any job/group that is listed below will be whitelisted from gaining stress from this script (not buckling the seatbelt, speeding, and shooting)
+Config.EnableStressEffects = false              -- whether this script should run its built-in effects on stress increasing (if using esx-ox this is being handled directly inside esx_status so you can set this to false)
+Config.MinimumStressForEffects = 50             -- minimum stress level for screen blurring effects to take place (it requires Config.EnableStressEffects to be "true")
+Config.EnableStressOnSpeeding = true            -- whether this script should run its built-in vehicle speed monitoring to increase stress periodically (it requires Config.EnableSeatbelt to be "true")
+Config.MinimumUnbuckledSpeedToGainStress = 60.0 -- going over this speed while having seatbelt unbuckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
+Config.MinimumBuckledSpeedToGainStress = 120.0  -- going over this speed even while having seatbelt buckled will cause stress (it requires Config.EnableStressOnSpeeding and Config.EnableSeatbelt to be "true")
+Config.GainStressWhileShooting = true           -- whether this script should increase player stress while shooting
+Config.StressWhileShootingChance = 0.2          -- chance to gain stress while shooting (accepted valid values are any number between 0 and 1 (%0 and %100)) (it requires Config.GainStressWhileShooting to be "true")
+Config.WhitelistedGroupsToGainStress = {        -- any job/group that is listed below will be whitelisted from gaining stress from this script (not buckling the seatbelt, speeding, and shooting)
     -- ["GROUP_NAME"] = MINIMUM_GRADE_TO_BE_WHITELISTED
     ["police"] = 0
 }

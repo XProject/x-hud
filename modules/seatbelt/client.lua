@@ -9,7 +9,7 @@ local speedMultiplier = Config.UseMPH and 2.23694 or 3.6
 local minSpeeds = {
     unbuckled = Config.MinimumUnbuckledSpeedToEject / speedMultiplier,
     buckled = Config.MinimumBuckledSpeedToEject / speedMultiplier,
-    harness = Config.Harness.MinimumSpeed / speedMultiplier,
+    harness = Config.MinimumHarnessBuckledSpeedToEject / speedMultiplier,
     seatbeltAlert = Config.SeatbeltUnbuckledAlertSpeed / speedMultiplier
 }
 
@@ -25,25 +25,20 @@ local function toggleSeatbelt()
     local seatbeltOn = not playerState.seatbelt
     playerState.seatbelt = seatbeltOn
 
-    SetFlyThroughWindscreenParams(seatbeltOn and minSpeeds.buckled or minSpeeds.unbuckled, 1.0, 17.0, 10.0)
-    TriggerEvent("seatbelt:client:ToggleSeatbelt", seatbeltOn)
     playBuckleSound(seatbeltOn)
+    TriggerEvent("seatbelt:client:ToggleSeatbelt", seatbeltOn)
+
+    SetFlyThroughWindscreenParams(seatbeltOn and minSpeeds.buckled or minSpeeds.unbuckled, 0.0, 10.0, 0.0)
 end
 
 local function toggleHarness()
     local harnessOn = not playerState.harness
     playerState.harness = harnessOn
 
-    TriggerEvent("seatbelt:client:ToggleSeatbelt", harnessOn)
     playBuckleSound(harnessOn)
+    TriggerEvent("seatbelt:client:ToggleSeatbelt", harnessOn)
 
-    local canFlyThroughWindscreen = not (harnessOn and Config.Harness.DisableFlyingThroughWindscreen)
-
-    SetPedConfigFlag(cache.ped, 32, canFlyThroughWindscreen) -- PED_FLAG_CAN_FLY_THRU_WINDSCREEN
-
-    if canFlyThroughWindscreen then
-        SetFlyThroughWindscreenParams(harnessOn and minSpeeds.harness or (playerState.seatbelt and minSpeeds.buckled or minSpeeds.unbuckled), 1.0, 17.0, 10.0)
-    end
+    SetFlyThroughWindscreenParams(harnessOn and minSpeeds.harness or minSpeeds.unbuckled, 0.0, 10.0, 0.0)
 end
 
 local isSeatbeltAlarmThreadActive = false
@@ -191,7 +186,7 @@ CreateThread(function()
     seatbeltThread()
 
     SetPedConfigFlag(cache.ped, 32, true) -- PED_FLAG_CAN_FLY_THRU_WINDSCREEN
-    SetFlyThroughWindscreenParams(minSpeeds.unbuckled, 1.0, 17.0, 10.0)
+    SetFlyThroughWindscreenParams(minSpeeds.unbuckled, 0.0, 10.0, 0.0)
 end)
 
 return seatbelt
