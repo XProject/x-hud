@@ -26,6 +26,7 @@ end
 eventHandler("esx:playerLoaded", function() framework.playerLoaded() end)
 eventHandler("esx:onPlayerLogout", function() framework.playerUnloaded() end)
 
+---@diagnostic disable-next-line: duplicate-doc-alias
 ---@alias accountData { index: integer, name: string, money: number, label: string, round: boolean }
 
 ---@param key string
