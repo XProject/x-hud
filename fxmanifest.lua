@@ -3,8 +3,8 @@ use_experimental_fxv2_oal "yes"
 lua54 "yes"
 game "gta5"
 
-name "ps-hud"
-version "2.1.2"
+name "x-hud"
+version "0.0.0"
 description "HUD"
 
 shared_scripts {
