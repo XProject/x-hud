@@ -366,7 +366,7 @@ local function hudUpdateThread()
         local wasInVehicle = false
 
         while framework.isPlayerLoaded() do
-            local shouldShowHud = not IsPauseMenuActive()
+            local shouldShowHud = not IsPauseMenuActive() and not playerState.invOpen
 
             if not shouldShowHud then
                 player.hideHud()
